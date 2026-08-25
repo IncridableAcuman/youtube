@@ -1,3 +1,20 @@
+server:
+  port: ${PORT}
+  servlet:
+    context-path: /api/v1
+
 spring:
   application:
     name: backend
+  data:
+    mongodb: ${DB_URL}
+
+
+jwt:
+  secret: ${JWT_SECRET}
+  access_time: ${JWT_ACCESS_TIME}
+  refresh_time: ${JWT_REFRESH_TIME}
+
+
+cookie:
+  secure: ${SECURE}
