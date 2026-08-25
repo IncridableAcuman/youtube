@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import {
     Play,
     Search,
@@ -12,13 +11,18 @@ import {
     Loader2,
     Menu,
 } from "lucide-react";
-import {useAuthStore} from "@/store/useAuthStore.ts";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useSidebarStore } from "@/store/useSidebarStore";
 import {api} from "@/api.axio.ts";
 
 export const Header: React.FC = () => {
     const { user, clearAuth } = useAuthStore();
+    const { toggleSidebar } = useSidebarStore();
+
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
@@ -33,16 +37,22 @@ export const Header: React.FC = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Qidiruv shaklini yuborish
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    };
+
     // Tizimdan chiqish (Logout) logikasi
     const handleLogout = async () => {
         setIsLoggingOut(true);
         try {
-            // Backend /auth/logout endpointiga so'rov yuborish (Cookie tozalanadi)
             await api.post("/auth/logout");
         } catch (error) {
             console.error("Logout qilishda xatolik:", error);
         } finally {
-            // Har qanday holatda local state tozalanadi va login sahifasiga o'tiladi
             clearAuth();
             setIsLoggingOut(false);
             navigate("/login");
@@ -64,10 +74,15 @@ export const Header: React.FC = () => {
         <header className="sticky top-0 z-50 h-14 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 flex items-center justify-between">
             {/* Chap tomon: Logo & Sidebar Toggle */}
             <div className="flex items-center gap-4">
-                <button className="p-2 hover:bg-zinc-800/60 rounded-full text-zinc-300 transition">
+                <button
+                    onClick={toggleSidebar}
+                    className="p-2 hover:bg-zinc-800/60 rounded-full text-zinc-300 transition focus:outline-none active:scale-95"
+                    title="Menyu"
+                >
                     <Menu className="w-5 h-5" />
                 </button>
-                <Link to="/" className="flex items-center gap-2">
+
+                <Link to="/" className="flex items-center gap-2 select-none">
                     <div className="w-8 h-8 rounded-xl bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/30">
                         <Play className="w-4 h-4 text-white fill-white ml-0.5" />
                     </div>
@@ -78,28 +93,44 @@ export const Header: React.FC = () => {
             </div>
 
             {/* O'rta: Search Bar */}
-            <div className="flex-1 max-w-2xl mx-4 hidden md:flex items-center">
+            <form
+                onSubmit={handleSearch}
+                className="flex-1 max-w-2xl mx-4 hidden md:flex items-center"
+            >
                 <div className="flex w-full items-center">
                     <input
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Qidiruv..."
                         className="w-full bg-zinc-900/80 border border-zinc-800 rounded-l-full px-4 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-red-600 transition"
                     />
-                    <button className="bg-zinc-800 hover:bg-zinc-700 border border-l-0 border-zinc-800 px-5 py-1.5 rounded-r-full text-zinc-300 transition">
+                    <button
+                        type="submit"
+                        className="bg-zinc-800 hover:bg-zinc-700 border border-l-0 border-zinc-800 px-5 py-1.5 rounded-r-full text-zinc-300 transition"
+                        title="Qidirish"
+                    >
                         <Search className="w-4 h-4" />
                     </button>
                 </div>
-            </div>
+            </form>
 
             {/* O'ng tomon: Amallar & Profil */}
             <div className="flex items-center gap-2 sm:gap-3">
                 {/* Video yuklash tugmasi */}
-                <button className="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-300 transition title='Video yuklash'">
+                <Link
+                    to="/upload"
+                    className="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-300 transition"
+                    title="Video yuklash"
+                >
                     <Video className="w-5 h-5" />
-                </button>
+                </Link>
 
                 {/* Bildirishnomalar */}
-                <button className="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-300 transition">
+                <button
+                    className="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-300 transition"
+                    title="Bildirishnomalar"
+                >
                     <Bell className="w-5 h-5" />
                 </button>
 
@@ -125,8 +156,16 @@ export const Header: React.FC = () => {
                         <div className="absolute right-0 mt-2 w-72 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 text-zinc-200 divide-y divide-zinc-800">
                             {/* User Info Header */}
                             <div className="px-4 py-3 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                                    {getInitials(user?.fullName || user?.username)}
+                                <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
+                                    {user?.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt={user.fullName || "User"}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        getInitials(user?.fullName || user?.username)
+                                    )}
                                 </div>
                                 <div className="overflow-hidden">
                                     <p className="font-semibold text-sm text-white truncate">
