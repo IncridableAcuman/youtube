@@ -25,8 +25,15 @@ export const LoginForm: React.FC = () => {
         setLoading(true);
         setErrorMsg(null);
         try {
+            // 1. Login qilish
             const response = await api.post("/auth/login", data);
             setAuth(response.data.accessToken, response.data.id);
+
+            // 2. Profil ma'lumotlarini yuklash
+            const userRes = await api.get("/users/me");
+            useAuthStore.getState().setUser(userRes.data);
+
+            // 3. Asosiy sahifaga yo'naltirish
             navigate("/");
         } catch (err: any) {
             setErrorMsg(err.response?.data?.message || "Tizimga kirishda xatolik yuz berdi");

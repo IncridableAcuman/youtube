@@ -22,7 +22,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
     private final PasswordEncoder passwordEncoder;
-    TokenService tokenService;
+    private final TokenService tokenService;
 
 
     public AuthDto.AuthResponse register(AuthDto.RegisterRequest request,HttpServletResponse response) {

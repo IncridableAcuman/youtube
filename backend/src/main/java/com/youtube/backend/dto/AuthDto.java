@@ -3,6 +3,7 @@ package com.youtube.backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+
 import lombok.Data;
 
 @Data
@@ -21,8 +22,6 @@ public class AuthDto {
         @NotBlank @Email private String email;
         @NotBlank private String password;
     }
-
-
 
 
     public record AuthResponse(String accessToken, String id) {

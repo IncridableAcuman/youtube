@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-@Document(collation = "users")
+@Document(collection = "users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter @Setter

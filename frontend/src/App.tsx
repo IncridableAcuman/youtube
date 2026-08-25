@@ -1,10 +1,11 @@
-import {useAuthInit} from "@/hooks/useAuthInit.ts";
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
-import {LoginPage} from "@/pages/LoginPage.tsx";
-import {RegisterPage} from "@/pages/RegisterPage.tsx";
-import {ProtectedRoute, PublicRoute} from "@/routes/GuardRoutes.tsx";
-import HomePage from "./pages/HomePage";
-import {LoadingSpinner} from "@/components/custom/LoadingSpinner.tsx";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAuthInit } from "@/hooks/useAuthInit";
+import { LoginPage } from "@/pages/LoginPage";
+import { RegisterPage } from "@/pages/RegisterPage";
+import { ProtectedRoute, PublicRoute } from "@/routes/GuardRoutes";
+import { MainLayout } from "@/components/layout/MainLayout";
+import HomePage from "@/pages/HomePage";
+import { LoadingSpinner } from "@/components/custom/LoadingSpinner";
 
 export default function App() {
     const { loading } = useAuthInit();
@@ -25,8 +26,10 @@ export default function App() {
 
                 {/* Himoyalangan yo'llar (Faqat Login qilganlarga ochiq) */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/" element={<HomePage />} />
-                    {/* Kelajakda qo'shiladigan sahifalar: /watch, /profile, /upload */}
+                    <Route element={<MainLayout />}>
+                        <Route path="/" element={<HomePage />} />
+                        {/* Kelajakda qo'shiladigan sahifalar: /watch/:id, /profile, /upload */}
+                    </Route>
                 </Route>
 
                 {/* Noto'g'ri URL bo'lsa bosh sahifaga yo'naltirish */}

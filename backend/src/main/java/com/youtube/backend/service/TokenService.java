@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -25,7 +25,7 @@ public class TokenService {
         TokenEntity token = findTokenByUser(userId).orElseGet(TokenEntity::new);
         token.setUserId(userId);
         token.setRefreshToken(refreshToken);
-        token.setExpiryDate(OffsetDateTime.now().plusDays(7));
+        token.setExpiryDate(LocalDateTime.now().plusDays(7));
         tokenRepository.save(token);
     }
 
