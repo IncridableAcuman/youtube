@@ -18,7 +18,9 @@ public class VideoController {
     private final VideoService videoService;
 
     @PostMapping
-    public ResponseEntity<VideoDto.VideoResponse> addVideo(@AuthenticationPrincipal UserEntity user, @Valid @RequestBody VideoDto.VideoRequest request){
+    public ResponseEntity<VideoDto.VideoResponse> addVideo(
+            @AuthenticationPrincipal UserEntity user,
+            @Valid @RequestBody VideoDto.VideoRequest request){
         return ResponseEntity.ok(videoService.addVideo(user,request));
     }
     @GetMapping("/{id}")
@@ -28,5 +30,16 @@ public class VideoController {
     @GetMapping
     public ResponseEntity<List<VideoDto.VideoResponse>> getList(@AuthenticationPrincipal UserEntity user){
         return ResponseEntity.ok(videoService.getList(user));
+    }
+    @PatchMapping("/{id}")
+    public ResponseEntity<VideoDto.VideoResponse> editVideo(@AuthenticationPrincipal UserEntity user,
+                                                            @PathVariable String id,
+                                                            @Valid @RequestBody VideoDto.VideoRequest request){
+        return ResponseEntity.ok(videoService.editVideo(user,id,request));
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> removeVideo(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
+        videoService.removeVideo(user,id);
+        return ResponseEntity.ok("Video removed");
     }
 }
