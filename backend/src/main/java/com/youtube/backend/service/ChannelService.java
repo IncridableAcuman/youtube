@@ -43,4 +43,13 @@ public class ChannelService {
         channelRepository.save(channel);
         return ChannelDto.ChannelResponse.from(channel,user);
     }
+    public ChannelDto.ChannelResponse removeVideoFromChannel(UserEntity user,String videoId){
+        VideoEntity video = videoRepository.findById(videoId).orElseThrow(()-> new CustomNotFoundException("Video not found: " + videoId));
+        if (!user.getId().equals(video.getUserId())){
+            throw new CustomBadRequestException("Only the video author can remove the video from channel");}
+        ChannelEntity channel = getChannel(user);
+        channel.getVideos().remove(video);
+        channelRepository.save(channel);
+        return ChannelDto.ChannelResponse.from(channel,user);
+    }
 }

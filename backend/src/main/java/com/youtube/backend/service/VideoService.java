@@ -5,6 +5,7 @@ import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.entity.VideoEntity;
 import com.youtube.backend.exception.CustomBadRequestException;
 import com.youtube.backend.exception.CustomNotFoundException;
+import com.youtube.backend.repository.VideoLikesRepository;
 import com.youtube.backend.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class VideoService {
     private final VideoRepository videoRepository;
+    private final VideoLikesRepository videoLikesRepository;
 
     public VideoDto.VideoResponse addVideo(UserEntity user,VideoDto.VideoRequest request){
         VideoEntity video = new VideoEntity();

@@ -26,4 +26,8 @@ public class ChannelController {
     public ResponseEntity<ChannelDto.ChannelResponse> addVideoToChannel(@AuthenticationPrincipal UserEntity user, @PathVariable String videoId){
         return ResponseEntity.ok(channelService.addVideoToChannel(user,videoId));
     }
+    @PostMapping("/videos/{videoId}/remove")
+    public ResponseEntity<ChannelDto.ChannelResponse> removeVideoFromChannel(@AuthenticationPrincipal UserEntity userEntity,@PathVariable String videoId){
+        return ResponseEntity.ok(channelService.removeVideoFromChannel(userEntity,videoId));
+    }
 }

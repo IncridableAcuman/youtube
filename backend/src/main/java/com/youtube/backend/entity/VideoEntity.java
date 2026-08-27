@@ -8,6 +8,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Document(collection = "videos")
 @NoArgsConstructor
@@ -21,6 +23,9 @@ public class VideoEntity {
     private String description;
     private String youtubeUrl;
     private String youtubeKey;
+    private int views;
+    private Set<String> tags;
+    private int likes;
+    private int dislikes;
     private LocalDateTime createdAt=LocalDateTime.now();
-
 }
