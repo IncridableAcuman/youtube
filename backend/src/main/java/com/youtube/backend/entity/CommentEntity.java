@@ -20,5 +20,5 @@ public class CommentEntity {
     private String content;
     private String videoId;
     private String userId;
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt=LocalDateTime.now();
 }
