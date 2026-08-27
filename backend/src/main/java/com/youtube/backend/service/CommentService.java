@@ -11,6 +11,8 @@ import com.youtube.backend.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -25,5 +27,11 @@ public class CommentService {
         comment.setVideoId(video.getId());
         commentRepository.save(comment);
         return CommentDto.CommentResponse.from(comment, UserDto.UserResponse.from(user));
+    }
+    public List<CommentDto.CommentResponse> getComments(UserEntity user,String videoId){
+        List<CommentEntity> comments = commentRepository.findByVideoIdOrderByCreatedAtDesc(videoId);
+        return comments
+                .stream()
+                .map(comment -> CommentDto.CommentResponse.from(comment,UserDto.UserResponse.from(user))).toList();
     }
 }

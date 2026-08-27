@@ -18,7 +18,7 @@ public class VideoDto {
     }
     public record VideoResponse(
             String id,
-            String authorId,
+            String userId,
             String title,
             String description,
             String youtubeUrl,
@@ -28,7 +28,7 @@ public class VideoDto {
         public static VideoResponse from(VideoEntity video){
             return new VideoResponse(
                     video.getId(),
-                    video.getAuthorId(),
+                    video.getUserId(),
                     video.getTitle(),
                     video.getDescription(),
                     video.getYoutubeUrl(),

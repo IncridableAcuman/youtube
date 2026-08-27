@@ -16,10 +16,11 @@ import java.time.LocalDateTime;
 public class VideoEntity {
     @Id
     private String id;
-    private String authorId;
+    private String userId;
     private String title;
     private String description;
     private String youtubeUrl;
     private String youtubeKey;
     private LocalDateTime createdAt=LocalDateTime.now();
+
 }

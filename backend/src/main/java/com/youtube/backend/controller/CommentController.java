@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
@@ -19,5 +21,9 @@ public class CommentController {
             @AuthenticationPrincipal UserEntity user,
             @RequestParam String videoId, @RequestBody CommentDto.CommentRequest request){
         return ResponseEntity.ok(commentService.addCommentToVideo(user,videoId,request));
+    }
+    @GetMapping
+    public ResponseEntity<List<CommentDto.CommentResponse>> getComments(@AuthenticationPrincipal UserEntity user,@RequestParam String videoId){
+        return ResponseEntity.ok(commentService.getComments(user,videoId));
     }
 }

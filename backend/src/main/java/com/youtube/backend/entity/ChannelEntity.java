@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "channels")
@@ -18,6 +20,7 @@ public class ChannelEntity {
     private String id;
 
     private String name;
-    private String author;
-    private List<VideoEntity> videos;
+    private String userId;
+    private List<VideoEntity> videos = new ArrayList<>();
+    private LocalDateTime createdAt=LocalDateTime.now();
 }

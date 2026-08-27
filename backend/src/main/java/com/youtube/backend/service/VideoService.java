@@ -19,7 +19,7 @@ public class VideoService {
 
     public VideoDto.VideoResponse addVideo(UserEntity user,VideoDto.VideoRequest request){
         VideoEntity video = new VideoEntity();
-        video.setAuthorId(user.getId());
+        video.setUserId(user.getId());
         video.setTitle(request.getTitle());
         video.setDescription(request.getDescription());
         video.setYoutubeUrl(request.getYoutubeUrl());
@@ -39,7 +39,7 @@ public class VideoService {
     }
     public VideoDto.VideoResponse editVideo(UserEntity user,String id,VideoDto.VideoRequest request){
         VideoEntity video = findVideoById(id);
-        if (!video.getAuthorId().equals(user.getId())){
+        if (!video.getUserId().equals(user.getId())){
             throw new CustomBadRequestException("Only author can edit this video");}
         Optional.ofNullable(request.getTitle()).ifPresent(video::setTitle);
         Optional.ofNullable(request.getDescription()).ifPresent(video::setDescription);
@@ -50,7 +50,7 @@ public class VideoService {
     }
     public void removeVideo(UserEntity user,String id){
         VideoEntity video = findVideoById(id);
-        if (!video.getAuthorId().equals(user.getId())){
+        if (!video.getUserId().equals(user.getId())){
             throw new CustomBadRequestException("Only author can edit this video");}
         videoRepository.delete(video);
     }
