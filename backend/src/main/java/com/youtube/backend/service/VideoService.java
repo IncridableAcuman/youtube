@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,12 +30,14 @@ public class VideoService {
     private final VideoLikesRepository videoLikesRepository;
     private final YoutubeUtil youtubeUtil;
 
-    public VideoDto.VideoResponse addVideo(UserEntity user,VideoDto.VideoRequest request){
+    public VideoDto.VideoResponse addVideo(UserEntity user, VideoDto.VideoRequest request) {
         String extractedKey = youtubeUtil.extractVideoId(request.getYoutubeUrl());
-        if (extractedKey == null){
-            throw new CustomBadRequestException("Incorrect YouTube url");}
-        if (videoRepository.existsByYoutubeKey(extractedKey)){
-            throw new CustomBadRequestException("This video already added");}
+        if (extractedKey == null) {
+            throw new CustomBadRequestException("Incorrect YouTube URL");
+        }
+        if (videoRepository.existsByYoutubeKey(extractedKey)) {
+            throw new CustomBadRequestException("This video has already been added");
+        }
         VideoEntity video = new VideoEntity();
         video.setUserId(user.getId());
         video.setTitle(request.getTitle());
@@ -45,48 +48,58 @@ public class VideoService {
         videoRepository.save(video);
         return VideoDto.VideoResponse.from(video);
     }
-    public List<VideoDto.VideoResponse> getList(UserEntity user){
+
+    public List<VideoDto.VideoResponse> getList(UserEntity user) {
         List<VideoEntity> list = videoRepository.findByUserId(user.getId());
-        return list
-                .stream()
-                .map(VideoDto.VideoResponse::from).toList();
+        return list.stream().map(VideoDto.VideoResponse::from).toList();
     }
-    public VideoEntity findVideoById(String id){
-        return videoRepository.findById(id).orElseThrow(()-> new CustomNotFoundException("Video not found"));
+
+    public VideoEntity findVideoById(String id) {
+        return videoRepository.findById(id)
+                .orElseThrow(() -> new CustomNotFoundException("Video not found: " + id));
     }
-    public VideoDto.VideoResponse editVideo(UserEntity user,String id,VideoDto.VideoRequest request){
+
+    public VideoDto.VideoResponse editVideo(UserEntity user, String id, VideoDto.VideoRequest request) {
         VideoEntity video = findVideoById(id);
-        if (!video.getUserId().equals(user.getId())){
-            throw new CustomBadRequestException("Only author can edit this video");}
+        if (!video.getUserId().equals(user.getId())) {
+            throw new CustomBadRequestException("Only the author can edit this video");
+        }
         Optional.ofNullable(request.getTitle()).ifPresent(video::setTitle);
         Optional.ofNullable(request.getDescription()).ifPresent(video::setDescription);
         Optional.ofNullable(request.getYoutubeUrl()).ifPresent(video::setYoutubeUrl);
         videoRepository.save(video);
         return VideoDto.VideoResponse.from(video);
     }
-    public void removeVideo(UserEntity user,String id){
+
+    public void removeVideo(UserEntity user, String id) {
         VideoEntity video = findVideoById(id);
-        if (!video.getUserId().equals(user.getId())){
-            throw new CustomBadRequestException("Only author can edit this video");}
+        if (!video.getUserId().equals(user.getId())) {
+            throw new CustomBadRequestException("Only the author can delete this video");
+        }
         videoRepository.delete(video);
     }
-    public VideoDto.VideoResponse getVideoDetails(String id){
+
+    public VideoDto.VideoResponse getVideoDetails(String id) {
         VideoEntity video = findVideoById(id);
-        increateVideoViews(video);
+        increaseVideoViews(video);
         return VideoDto.VideoResponse.from(video);
     }
-    public void increateVideoViews(VideoEntity video){
+
+    public void increaseVideoViews(VideoEntity video) {
         video.incrementViews();
         videoRepository.save(video);
     }
-    public VideoDto.VideoResponse toggleReaction(UserEntity user,String videoId,boolean isLike){
+
+    @Transactional
+    public VideoDto.VideoResponse toggleReaction(UserEntity user, String videoId, boolean isLike) {
         VideoEntity video = findVideoById(videoId);
         Optional<VideoLikesEntity> existsLike = videoLikesRepository.findByUserIdAndVideoId(user.getId(), videoId);
-        if (existsLike.isPresent()){
+
+        if (existsLike.isPresent()) {
             VideoLikesEntity likesEntity = existsLike.get();
-            if (likesEntity.isLike() == isLike){
+            if (likesEntity.isLike() == isLike) {
                 videoLikesRepository.delete(likesEntity);
-                if (isLike){
+                if (isLike) {
                     video.decrementLikes();
                 } else {
                     video.decrementDislikes();
@@ -95,7 +108,7 @@ public class VideoService {
                 likesEntity.setLike(isLike);
                 videoLikesRepository.save(likesEntity);
 
-                if (isLike){
+                if (isLike) {
                     video.incrementLikes();
                     video.decrementDislikes();
                 } else {
@@ -111,7 +124,7 @@ public class VideoService {
             entity.setCreatedAt(LocalDateTime.now());
             videoLikesRepository.save(entity);
 
-            if (isLike){
+            if (isLike) {
                 video.incrementLikes();
             } else {
                 video.incrementDisLikes();
@@ -120,6 +133,7 @@ public class VideoService {
         videoRepository.save(video);
         return VideoDto.VideoResponse.from(video);
     }
+
     public Page<VideoDto.VideoResponse> searchVideos(String query, int page, int size) {
         if (query == null || query.trim().isEmpty()) {
             return Page.empty();
@@ -128,7 +142,6 @@ public class VideoService {
         TextCriteria criteria = TextCriteria.forDefaultLanguage()
                 .matchingAny(query.trim().split("\\s+"));
 
-        // Natijalarni "score" (moslik reytingi) bo'yicha kamayish tartibida saralash
         Pageable pageable = PageRequest.of(
                 page,
                 size,
@@ -136,9 +149,9 @@ public class VideoService {
         );
 
         Page<VideoEntity> videoPage = videoRepository.findAllBy(criteria, pageable);
-
         return videoPage.map(VideoDto.VideoResponse::from);
     }
+
     public PageResponse<VideoDto.VideoResponse> getAllVideos(
             int page,
             int size,

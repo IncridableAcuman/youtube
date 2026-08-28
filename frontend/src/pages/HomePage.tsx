@@ -1,81 +1,56 @@
 import { useState, useEffect } from "react";
 import { CategoryChips } from "@/components/video/CategoryChips";
 import { VideoCard } from "@/components/video/VideoCard";
-import type {Video} from "@/types/video";
-import {api} from "@/api.axio.ts";
-
-// Zaxira uchun namuna videolar (Backend ulanmagan bo'lsa)
-const MOCK_VIDEOS: Video[] = [
-    {
-        id: "1",
-        title: "Spring Boot va React yordamida Fullstack Dastur Yaratish",
-        youtubeUrl: "https://www.youtube.com/watch?v=hd1PKDTw91Q",
-        youtubeId: "hd1PKDTw91Q",
-        channelName: "Java Code Uz",
-        views: 12400,
-        duration: "24:15",
-        createdAt: "2 kun avval",
-    },
-    {
-        id: "2",
-        title: "TailwindCSS v4.0 Yengi Imkoniyatlari va Amaliyot",
-        youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        youtubeId: "dQw4w9WgXcQ",
-        channelName: "Frontend Community",
-        views: 45000,
-        duration: "18:40",
-        createdAt: "1 hafta avval",
-    },
-    {
-        id: "3",
-        title: "TypeScript va React Hook Form bilan Murakkab Formani Boshqarish",
-        youtubeUrl: "https://www.youtube.com/watch?v=L_LUpnjgPso",
-        youtubeId: "L_LUpnjgPso",
-        channelName: "Web Dev Uz",
-        views: 8900,
-        duration: "15:02",
-        createdAt: "3 kun avval",
-    },
-    {
-        id: "4",
-        title: "MongoDB va Spring Data Repository Bilan Ishlash",
-        youtubeUrl: "https://www.youtube.com/watch?v=3qBXWUpoPHo",
-        youtubeId: "3qBXWUpoPHo",
-        channelName: "Backend Master",
-        views: 3100,
-        duration: "32:10",
-        createdAt: "5 kun avval",
-    },
-];
+import type { Video, PageResponse } from "@/types/video";
+import { api } from "@/api.axio";
+import { UploadModal } from "@/components/video/UploadModal";
+import { Plus } from "lucide-react";
 
 export default function HomePage() {
-    const [videos, setVideos] = useState<Video[]>(MOCK_VIDEOS);
+    const [videos, setVideos] = useState<Video[]>([]);
+    const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-    useEffect(() => {
-        // Backend API mavjud bo'lganda real ma'lumot yuklanadi
+    const fetchVideos = () => {
         api
-            .get("/api/videos")
+            .get<PageResponse<Video>>("/videos?page=0&size=12")
             .then((res) => {
-                if (res.data && res.data.length > 0) {
-                    setVideos(res.data);
+                if (res.data && res.data.content) {
+                    setVideos(res.data.content);
                 }
             })
-            .catch(() => {
-                console.log("Mock ma'lumotlar ishlatilmoqda.");
+            .catch((err) => {
+                console.error("Backenddan ma'lumot olishda xatolik:", err);
             });
+    };
+
+    useEffect(() => {
+        fetchVideos();
     }, []);
 
     return (
         <div className="space-y-6">
-            {/* Kategoriyalar filtri */}
-            <CategoryChips />
+            <div className="flex items-center justify-between gap-4">
+                <CategoryChips />
+                <button
+                    onClick={() => setIsUploadOpen(true)}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg shadow-blue-600/20 transition shrink-0"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>Video Joylash</span>
+                </button>
+            </div>
 
-            {/* Video Feed Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
                 {videos.map((video) => (
                     <VideoCard key={video.id} video={video} />
                 ))}
             </div>
+
+            <UploadModal
+                isOpen={isUploadOpen}
+                onClose={() => setIsUploadOpen(false)}
+                onSuccess={fetchVideos}
+            />
         </div>
     );
 }

@@ -22,44 +22,20 @@ public class VideoController {
     @PostMapping
     public ResponseEntity<VideoDto.VideoResponse> addVideo(
             @AuthenticationPrincipal UserEntity user,
-            @Valid @RequestBody VideoDto.VideoRequest request){
-        return ResponseEntity.ok(videoService.addVideo(user,request));
+            @Valid @RequestBody VideoDto.VideoRequest request) {
+        return ResponseEntity.ok(videoService.addVideo(user, request));
     }
+
     @GetMapping("/{id}")
-    public ResponseEntity<VideoDto.VideoResponse> getVideoDetails(@PathVariable String id){
+    public ResponseEntity<VideoDto.VideoResponse> getVideoDetails(@PathVariable String id) {
         return ResponseEntity.ok(videoService.getVideoDetails(id));
     }
-    @GetMapping
-    public ResponseEntity<List<VideoDto.VideoResponse>> getList(@AuthenticationPrincipal UserEntity user){
+
+    @GetMapping("/me")
+    public ResponseEntity<List<VideoDto.VideoResponse>> getMyVideos(@AuthenticationPrincipal UserEntity user) {
         return ResponseEntity.ok(videoService.getList(user));
     }
-    @PatchMapping("/{id}")
-    public ResponseEntity<VideoDto.VideoResponse> editVideo(@AuthenticationPrincipal UserEntity user,
-                                                            @PathVariable String id,
-                                                            @Valid @RequestBody VideoDto.VideoRequest request){
-        return ResponseEntity.ok(videoService.editVideo(user,id,request));
-    }
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> removeVideo(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
-        videoService.removeVideo(user,id);
-        return ResponseEntity.ok("Video removed");
-    }
-    @PostMapping("/{id}/like")
-    public ResponseEntity<VideoDto.VideoResponse> videoLike(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
-        return ResponseEntity.ok(videoService.toggleReaction(user,id,true));
-    }
-    @PostMapping("/{id}/dislike")
-    public ResponseEntity<VideoDto.VideoResponse> disLike(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
-        return ResponseEntity.ok(videoService.toggleReaction(user,id,false));
-    }
-    @GetMapping("/search")
-    public ResponseEntity<Page<VideoDto.VideoResponse>> searchVideos(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return ResponseEntity.ok(videoService.searchVideos(query, page, size));
-    }
+
     @GetMapping
     public ResponseEntity<PageResponse<VideoDto.VideoResponse>> getAllVideos(
             @RequestParam(defaultValue = "0") int page,
@@ -68,5 +44,44 @@ public class VideoController {
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
         return ResponseEntity.ok(videoService.getAllVideos(page, size, sortBy, sortDir));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<VideoDto.VideoResponse>> searchVideos(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(videoService.searchVideos(query, page, size));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<VideoDto.VideoResponse> editVideo(
+            @AuthenticationPrincipal UserEntity user,
+            @PathVariable String id,
+            @Valid @RequestBody VideoDto.VideoRequest request) {
+        return ResponseEntity.ok(videoService.editVideo(user, id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> removeVideo(
+            @AuthenticationPrincipal UserEntity user,
+            @PathVariable String id) {
+        videoService.removeVideo(user, id);
+        return ResponseEntity.ok("Video removed successfully");
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<VideoDto.VideoResponse> videoLike(
+            @AuthenticationPrincipal UserEntity user,
+            @PathVariable String id) {
+        return ResponseEntity.ok(videoService.toggleReaction(user, id, true));
+    }
+
+    @PostMapping("/{id}/dislike")
+    public ResponseEntity<VideoDto.VideoResponse> disLike(
+            @AuthenticationPrincipal UserEntity user,
+            @PathVariable String id) {
+        return ResponseEntity.ok(videoService.toggleReaction(user, id, false));
     }
 }
