@@ -31,8 +31,11 @@ public class ChannelService {
         if (channelRepository.findByUserId(user.getId()).isPresent()) {
             throw new CustomBadRequestException("User channel already exist");
         }
+
         ChannelEntity channel = new ChannelEntity();
         channel.setName(request.getName());
+        channel.setDescription(request.getDescription());
+        channel.setHandle(request.getHandle());
         channel.setUserId(user.getId());
         channelRepository.save(channel);
 
@@ -41,16 +44,25 @@ public class ChannelService {
 
     public ChannelEntity getChannelByUserId(String userId) {
         return channelRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomNotFoundException("Channel not found: " + userId));
+                .orElseThrow(() -> new CustomNotFoundException("Channel not found for user: " + userId));
     }
 
-    public ChannelDto.ChannelResponse getChannelDetails(String channelId) {
+    public ChannelDto.ChannelResponse getMyChannel(UserEntity user) {
+        ChannelEntity channel = getChannelByUserId(user.getId());
+        return ChannelDto.ChannelResponse.from(channel, user);
+    }
+
+    public ChannelDto.ChannelResponse getChannelDetails(String channelId, UserEntity currentUser) {
         ChannelEntity channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new CustomNotFoundException("Channel not found: " + channelId));
-        UserEntity user = userRepository.findById(channel.getUserId())
+
+        UserEntity author = userRepository.findById(channel.getUserId())
                 .orElseThrow(() -> new CustomNotFoundException("Channel author not found"));
 
-        return ChannelDto.ChannelResponse.from(channel, user);
+        boolean isSubscribed = currentUser != null &&
+                subscriptionRepository.existsBySubscriberUserIdAndChannelId(currentUser.getId(), channelId);
+
+        return ChannelDto.ChannelResponse.from(channel, author, isSubscribed);
     }
 
     public void assignVideoToChannel(UserEntity user, String videoId) {
@@ -67,8 +79,14 @@ public class ChannelService {
     }
 
     public List<VideoDto.VideoResponse> getChannelVideos(String channelId) {
+        ChannelEntity channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new CustomNotFoundException("Channel not found: " + channelId));
+
         List<VideoEntity> videos = videoRepository.findByChannelId(channelId);
-        return videos.stream().map(VideoDto.VideoResponse::from).toList();
+
+        return videos.stream()
+                .map(video -> VideoDto.VideoResponse.from(video, channel.getName()))
+                .toList();
     }
 
     @Transactional

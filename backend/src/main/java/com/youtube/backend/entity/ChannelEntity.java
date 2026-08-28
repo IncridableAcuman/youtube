@@ -20,6 +20,11 @@ public class ChannelEntity {
 
     private String name;
 
+    private String description;
+
+    @Indexed(unique = true, sparse = true)
+    private String handle;
+
     @Indexed(unique = true)
     private String userId;
 

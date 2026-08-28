@@ -5,18 +5,18 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
 public class VideoDto {
 
     @Data
     public static class VideoRequest {
-       @NotBlank private String title;
-       @NotBlank private String description;
-       @NotBlank private String youtubeUrl;
-       @NotBlank private String duration;
+        @NotBlank private String title;
+        @NotBlank private String description;
+        @NotBlank private String youtubeUrl;
+        @NotBlank private String duration;
     }
+
     public record VideoResponse(
             String id,
             String userId,
@@ -30,10 +30,10 @@ public class VideoDto {
             int likes,
             int dislikes,
             LocalDateTime createdAt,
-            String channelId
+            String channelId,
+            String channelName // <--- Kanal nomi qo'shildi
     ){
-        public static VideoResponse from(VideoEntity video){
-            // YouTube rasm havolasini avtomatik yasash
+        public static VideoResponse from(VideoEntity video, String channelName){
             String thumbnail = "https://img.youtube.com/vi/" + video.getYoutubeKey() + "/hqdefault.jpg";
 
             return new VideoResponse(
@@ -49,8 +49,13 @@ public class VideoDto {
                     video.getLikes(),
                     video.getDislikes(),
                     video.getCreatedAt(),
-                    video.getChannelId()
+                    video.getChannelId(),
+                    channelName
             );
+        }
+
+        public static VideoResponse from(VideoEntity video){
+            return from(video, null);
         }
     }
 }

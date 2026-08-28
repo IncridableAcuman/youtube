@@ -14,23 +14,39 @@ public class ChannelDto {
     public static class ChannelRequest {
         @NotBlank(message = "Channel name is null")
         private String name;
+        private String description;
+        private String handle;
     }
 
     public record ChannelResponse(
             String id,
             String name,
+            String description,
+            String handle,
             UserDto.UserResponse user,
-            int subscribers,
+            int subscribersCount, // <--- Frontend uchun subscribersCount qlindi
+            boolean isSubscribed,  // <--- Obuna holati qo'shildi
+            String avatarUrl,
+            String bannerUrl,
             LocalDateTime createdAt
     ){
-        public static ChannelResponse from(ChannelEntity channel, UserEntity user){
+        public static ChannelResponse from(ChannelEntity channel, UserEntity user, boolean isSubscribed){
             return new ChannelResponse(
                     channel.getId(),
                     channel.getName(),
-                    UserDto.UserResponse.from(user),
+                    channel.getDescription(),
+                    channel.getHandle(),
+                    user != null ? UserDto.UserResponse.from(user) : null,
                     channel.getSubscribers(),
+                    isSubscribed,
+                    user != null ? user.getAvatar() : null,
+                    null, // Banner URL mavjud bo'lsa joylaysiz
                     channel.getCreatedAt()
             );
+        }
+
+        public static ChannelResponse from(ChannelEntity channel, UserEntity user){
+            return from(channel, user, false);
         }
     }
 }

@@ -29,26 +29,32 @@ public class VideoEntity {
     @Indexed(unique = true)
     private String youtubeKey;
     private String duration;
-    private int views=0;
+    private int views = 0;
     private Set<String> tags;
-    private int likes=0;
-    private int dislikes=0;
+    private int likes = 0;
+    private int dislikes = 0;
     private String channelId;
-    private LocalDateTime createdAt=LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
     @TextScore
     private Float score;
 
+    public void incrementLikes() {
+        this.likes++;
+    }
 
-    public void incrementLikes(){
-        this.likes++;}
-    public void decrementLikes(){
-        this.likes = Math.max(0,this.likes-1);}
+    public void decrementLikes() {
+        this.likes = Math.max(0, this.likes - 1);
+    }
 
-    public void incrementDisLikes(){
-        this.dislikes++;}
-    public void decrementDislikes(){
-        this.dislikes = Math.max(0,this.dislikes-1);}
+    public void incrementDislikes() { // incrementDisLikes -> incrementDislikes
+        this.dislikes++;
+    }
 
-    public void incrementViews(){
-        this.views++;}
+    public void decrementDislikes() {
+        this.dislikes = Math.max(0, this.dislikes - 1);
+    }
+
+    public void incrementViews() {
+        this.views++;
+    }
 }

@@ -1,6 +1,5 @@
 package com.youtube.backend.controller;
 
-
 import com.youtube.backend.dto.UserDto;
 import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.service.UserService;
@@ -18,12 +17,16 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto.UserRequest> getCurrentUser(@AuthenticationPrincipal UserEntity user) {
+    public ResponseEntity<UserDto.UserResponse> getCurrentUser(@AuthenticationPrincipal UserEntity user) {
         return ResponseEntity.ok(userService.getCurrentUserProfile(user));
     }
-    @PatchMapping
-    public ResponseEntity<String> updatePassword(@AuthenticationPrincipal UserEntity user, @Valid @RequestBody UserDto.UpdatePasswordRequest request){
-        userService.updatePassword(user,request);
-        return ResponseEntity.ok("Password updated");
+
+    @PatchMapping("/password")
+    public ResponseEntity<String> updatePassword(
+            @AuthenticationPrincipal UserEntity user,
+            @Valid @RequestBody UserDto.UpdatePasswordRequest request
+    ) {
+        userService.updatePassword(user, request);
+        return ResponseEntity.ok("Parol muvaffaqiyatli yangilandi");
     }
 }

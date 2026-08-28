@@ -6,27 +6,35 @@ import {
     Video,
     Bell,
     LogOut,
-    User as UserIcon,
     Shield,
     Loader2,
     Menu,
+    PlusCircle,
+    Tv,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import {api} from "@/api.axio.ts";
+import { useChannelStore } from "@/store/useChannelStore";
+import { CreateChannelModal } from "@/components/channel/CreateChannelModal";
+import { api } from "@/api.axio";
 
 export const Header: React.FC = () => {
     const { user, clearAuth } = useAuthStore();
     const { toggleSidebar } = useSidebarStore();
+    const { myChannel, fetchMyChannel, loading: channelLoading } = useChannelStore();
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
-    // Dropdown'dan tashqariga bosilganda yopish
+    useEffect(() => {
+        fetchMyChannel();
+    }, [fetchMyChannel]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -37,7 +45,6 @@ export const Header: React.FC = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Qidiruv shaklini yuborish
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
@@ -45,7 +52,6 @@ export const Header: React.FC = () => {
         }
     };
 
-    // Tizimdan chiqish (Logout) logikasi
     const handleLogout = async () => {
         setIsLoggingOut(true);
         try {
@@ -59,7 +65,6 @@ export const Header: React.FC = () => {
         }
     };
 
-    // Foydalanuvchi avatarida ko'rsatiladigan initsiallar (masalan: John Doe -> JD)
     const getInitials = (name?: string) => {
         if (!name) return "U";
         return name
@@ -72,7 +77,6 @@ export const Header: React.FC = () => {
 
     return (
         <header className="sticky top-0 z-50 h-14 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 flex items-center justify-between">
-            {/* Chap tomon: Logo & Sidebar Toggle */}
             <div className="flex items-center gap-4">
                 <button
                     onClick={toggleSidebar}
@@ -87,12 +91,11 @@ export const Header: React.FC = () => {
                         <Play className="w-4 h-4 text-white fill-white ml-0.5" />
                     </div>
                     <span className="text-lg font-bold tracking-tight text-white hidden sm:inline">
-            YouTube <span className="text-xs font-normal text-red-500">UZ</span>
-          </span>
+                        YouTube <span className="text-xs font-normal text-red-500">UZ</span>
+                    </span>
                 </Link>
             </div>
 
-            {/* O'rta: Search Bar */}
             <form
                 onSubmit={handleSearch}
                 className="flex-1 max-w-2xl mx-4 hidden md:flex items-center"
@@ -115,18 +118,15 @@ export const Header: React.FC = () => {
                 </div>
             </form>
 
-            {/* O'ng tomon: Amallar & Profil */}
             <div className="flex items-center gap-2 sm:gap-3">
-                {/* Video yuklash tugmasi */}
                 <Link
-                    to="/upload"
+                    to="/my-videos"
                     className="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-300 transition"
-                    title="Video yuklash"
+                    title="Videolaringiz"
                 >
                     <Video className="w-5 h-5" />
                 </Link>
 
-                {/* Bildirishnomalar */}
                 <button
                     className="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-300 transition"
                     title="Bildirishnomalar"
@@ -134,7 +134,6 @@ export const Header: React.FC = () => {
                     <Bell className="w-5 h-5" />
                 </button>
 
-                {/* Profil Dropdown Container */}
                 <div className="relative ml-2" ref={dropdownRef}>
                     <button
                         onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -151,10 +150,8 @@ export const Header: React.FC = () => {
                         )}
                     </button>
 
-                    {/* Profile Dropdown Menu */}
                     {dropdownOpen && (
                         <div className="absolute right-0 mt-2 w-72 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 text-zinc-200 divide-y divide-zinc-800">
-                            {/* User Info Header */}
                             <div className="px-4 py-3 flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
                                     {user?.avatar ? (
@@ -180,27 +177,44 @@ export const Header: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Menyular Ro'yxati */}
                             <div className="py-1">
+                                {channelLoading ? (
+                                    <div className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-400">
+                                        <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                                        Yuklanmoqda...
+                                    </div>
+                                ) : myChannel ? (
+                                    <Link
+                                        to={`/channel/${myChannel.id}`}
+                                        onClick={() => setDropdownOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-zinc-800/80 text-zinc-300 transition"
+                                    >
+                                        <Tv className="w-4 h-4 text-zinc-400" />
+                                        Kanalingiz
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setDropdownOpen(false);
+                                            setIsCreateChannelOpen(true);
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-zinc-800/80 text-red-400 font-medium transition"
+                                    >
+                                        <PlusCircle className="w-4 h-4 text-red-500" />
+                                        Kanal yaratish
+                                    </button>
+                                )}
+
                                 <Link
-                                    to="/profile"
-                                    onClick={() => setDropdownOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-zinc-800/80 text-zinc-300 transition"
-                                >
-                                    <UserIcon className="w-4 h-4 text-zinc-400" />
-                                    Kanalingiz
-                                </Link>
-                                <Link
-                                    to="/studio"
+                                    to="/my-videos"
                                     onClick={() => setDropdownOpen(false)}
                                     className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-zinc-800/80 text-zinc-300 transition"
                                 >
                                     <Shield className="w-4 h-4 text-zinc-400" />
-                                    YouTube Studio
+                                    Boshqaruv Paneli
                                 </Link>
                             </div>
 
-                            {/* Logout Button */}
                             <div className="py-1">
                                 <button
                                     onClick={handleLogout}
@@ -219,6 +233,11 @@ export const Header: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            <CreateChannelModal
+                isOpen={isCreateChannelOpen}
+                onClose={() => setIsCreateChannelOpen(false)}
+            />
         </header>
     );
 };
