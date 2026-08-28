@@ -1,10 +1,12 @@
 package com.youtube.backend.controller;
 
+import com.youtube.backend.dto.PageResponse;
 import com.youtube.backend.dto.VideoDto;
 import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.service.VideoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -49,5 +51,22 @@ public class VideoController {
     @PostMapping("/{id}/dislike")
     public ResponseEntity<VideoDto.VideoResponse> disLike(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
         return ResponseEntity.ok(videoService.toggleReaction(user,id,false));
+    }
+    @GetMapping("/search")
+    public ResponseEntity<Page<VideoDto.VideoResponse>> searchVideos(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(videoService.searchVideos(query, page, size));
+    }
+    @GetMapping
+    public ResponseEntity<PageResponse<VideoDto.VideoResponse>> getAllVideos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        return ResponseEntity.ok(videoService.getAllVideos(page, size, sortBy, sortDir));
     }
 }

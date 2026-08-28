@@ -1,55 +1,106 @@
 package com.youtube.backend.service;
 
 import com.youtube.backend.dto.ChannelDto;
+import com.youtube.backend.dto.VideoDto;
 import com.youtube.backend.entity.ChannelEntity;
+import com.youtube.backend.entity.ChannelSubscriptionEntity;
 import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.entity.VideoEntity;
 import com.youtube.backend.exception.CustomBadRequestException;
 import com.youtube.backend.exception.CustomNotFoundException;
 import com.youtube.backend.repository.ChannelRepository;
+import com.youtube.backend.repository.ChannelSubscriptionRepository;
+import com.youtube.backend.repository.UserRepository;
 import com.youtube.backend.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ChannelService {
     private final ChannelRepository channelRepository;
     private final VideoRepository videoRepository;
+    private final ChannelSubscriptionRepository subscriptionRepository;
+    private final UserRepository userRepository;
 
-    public ChannelDto.ChannelResponse createChannel(UserEntity user, ChannelDto.ChannelRequest request){
+    public ChannelDto.ChannelResponse createChannel(UserEntity user, ChannelDto.ChannelRequest request) {
+        if (channelRepository.findByUserId(user.getId()).isPresent()) {
+            throw new CustomBadRequestException("User channel already exist");
+        }
         ChannelEntity channel = new ChannelEntity();
         channel.setName(request.getName());
         channel.setUserId(user.getId());
-        channel.setVideos(new ArrayList<>());
         channelRepository.save(channel);
-        return ChannelDto.ChannelResponse.from(channel,user);
+
+        return ChannelDto.ChannelResponse.from(channel, user);
     }
-    public ChannelEntity getChannel(UserEntity user){
-        return channelRepository.findByUserId(user.getId())
-                .orElseThrow(()-> new CustomNotFoundException("Channel not found: " + user.getId()));
+
+    public ChannelEntity getChannelByUserId(String userId) {
+        return channelRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomNotFoundException("Channel not found: " + userId));
     }
-    public ChannelDto.ChannelResponse addVideoToChannel(UserEntity user,String videoId){
-        VideoEntity video = videoRepository.findById(videoId).orElseThrow(()-> new CustomNotFoundException("Video not found: " + videoId));
-        if (!user.getId().equals(video.getUserId())){
-            throw new CustomBadRequestException("Only the video author can add the video to the channel");}
-        ChannelEntity channel = getChannel(user);
-        if (channel.getVideos().stream().anyMatch(v->v.getId().equals(videoId))){
-            throw new CustomBadRequestException("Video already exists in channel");
+
+    public ChannelDto.ChannelResponse getChannelDetails(String channelId) {
+        ChannelEntity channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new CustomNotFoundException("Channel not found: " + channelId));
+        UserEntity user = userRepository.findById(channel.getUserId())
+                .orElseThrow(() -> new CustomNotFoundException("Channel author not found"));
+
+        return ChannelDto.ChannelResponse.from(channel, user);
+    }
+
+    public void assignVideoToChannel(UserEntity user, String videoId) {
+        VideoEntity video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new CustomNotFoundException("Video not found: " + videoId));
+
+        if (!user.getId().equals(video.getUserId())) {
+            throw new CustomBadRequestException("Only the author of the video can attach it to the channel!");
         }
-        channel.getVideos().add(video);
-        channelRepository.save(channel);
-        return ChannelDto.ChannelResponse.from(channel,user);
+
+        ChannelEntity channel = getChannelByUserId(user.getId());
+        video.setChannelId(channel.getId());
+        videoRepository.save(video);
     }
-    public ChannelDto.ChannelResponse removeVideoFromChannel(UserEntity user,String videoId){
-        VideoEntity video = videoRepository.findById(videoId).orElseThrow(()-> new CustomNotFoundException("Video not found: " + videoId));
-        if (!user.getId().equals(video.getUserId())){
-            throw new CustomBadRequestException("Only the video author can remove the video from channel");}
-        ChannelEntity channel = getChannel(user);
-        channel.getVideos().remove(video);
-        channelRepository.save(channel);
-        return ChannelDto.ChannelResponse.from(channel,user);
+
+    public List<VideoDto.VideoResponse> getChannelVideos(String channelId) {
+        List<VideoEntity> videos = videoRepository.findByChannelId(channelId);
+        return videos.stream().map(VideoDto.VideoResponse::from).toList();
+    }
+
+    @Transactional
+    public boolean toggleSubscription(UserEntity user, String channelId) {
+        ChannelEntity channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new CustomNotFoundException("Channel not found: " + channelId));
+
+        if (channel.getUserId().equals(user.getId())) {
+            throw new CustomBadRequestException("You can't subscribe to your own channel!");
+        }
+
+        Optional<ChannelSubscriptionEntity> existingSub =
+                subscriptionRepository.findBySubscriberUserIdAndChannelId(user.getId(), channelId);
+
+        if (existingSub.isPresent()) {
+            subscriptionRepository.delete(existingSub.get());
+            channel.decrementSubscribers();
+            channelRepository.save(channel);
+            return false;
+        } else {
+            ChannelSubscriptionEntity subscription = new ChannelSubscriptionEntity();
+            subscription.setSubscriberUserId(user.getId());
+            subscription.setChannelId(channelId);
+            subscriptionRepository.save(subscription);
+
+            channel.incrementSubscribers();
+            channelRepository.save(channel);
+            return true;
+        }
+    }
+
+    public boolean isSubscribed(String userId, String channelId) {
+        return subscriptionRepository.existsBySubscriberUserIdAndChannelId(userId, channelId);
     }
 }

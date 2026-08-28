@@ -8,9 +8,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Document(collection = "videos")
@@ -21,9 +21,9 @@ public class VideoEntity {
     @Id
     private String id;
     private String userId;
-    @TextIndexed
+    @TextIndexed(weight = 3)
     private String title;
-    @TextIndexed
+    @TextIndexed(weight = 1)
     private String description;
     private String youtubeUrl;
     @Indexed(unique = true)
@@ -33,7 +33,10 @@ public class VideoEntity {
     private Set<String> tags;
     private int likes=0;
     private int dislikes=0;
+    private String channelId;
     private LocalDateTime createdAt=LocalDateTime.now();
+    @TextScore
+    private Float score;
 
 
     public void incrementLikes(){

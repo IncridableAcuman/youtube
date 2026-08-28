@@ -1,8 +1,10 @@
 package com.youtube.backend.controller;
 
 import com.youtube.backend.dto.CommentDto;
+import com.youtube.backend.dto.PageResponse;
 import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.service.CommentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,11 +21,21 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommentDto.CommentResponse> addCommentToVideo(
             @AuthenticationPrincipal UserEntity user,
-            @RequestParam String videoId, @RequestBody CommentDto.CommentRequest request){
-        return ResponseEntity.ok(commentService.addCommentToVideo(user,videoId,request));
+            @RequestParam String videoId,
+            @Valid @RequestBody CommentDto.CommentRequest request) {
+        return ResponseEntity.ok(commentService.addCommentToVideo(user, videoId, request));
     }
-    @GetMapping
-    public ResponseEntity<List<CommentDto.CommentResponse>> getComments(@RequestParam String userId,@RequestParam String videoId){
-        return ResponseEntity.ok(commentService.getComments(userId,videoId));
+
+    @GetMapping("/video/{videoId}")
+    public ResponseEntity<List<CommentDto.CommentResponse>> getCommentsByVideo(@PathVariable String videoId) {
+        return ResponseEntity.ok(commentService.getCommentsByVideoId(videoId));
+    }
+    @GetMapping("/video/{videoId}")
+    public ResponseEntity<PageResponse<CommentDto.CommentResponse>> getCommentsByVideo(
+            @PathVariable String videoId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(commentService.getCommentsByVideoId(videoId, page, size));
     }
 }

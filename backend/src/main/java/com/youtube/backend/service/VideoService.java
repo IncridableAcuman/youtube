@@ -1,5 +1,6 @@
 package com.youtube.backend.service;
 
+import com.youtube.backend.dto.PageResponse;
 import com.youtube.backend.dto.VideoDto;
 import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.entity.VideoEntity;
@@ -10,6 +11,11 @@ import com.youtube.backend.repository.VideoLikesRepository;
 import com.youtube.backend.repository.VideoRepository;
 import com.youtube.backend.util.YoutubeUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -113,5 +119,40 @@ public class VideoService {
         }
         videoRepository.save(video);
         return VideoDto.VideoResponse.from(video);
+    }
+    public Page<VideoDto.VideoResponse> searchVideos(String query, int page, int size) {
+        if (query == null || query.trim().isEmpty()) {
+            return Page.empty();
+        }
+
+        TextCriteria criteria = TextCriteria.forDefaultLanguage()
+                .matchingAny(query.trim().split("\\s+"));
+
+        // Natijalarni "score" (moslik reytingi) bo'yicha kamayish tartibida saralash
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "score")
+        );
+
+        Page<VideoEntity> videoPage = videoRepository.findAllBy(criteria, pageable);
+
+        return videoPage.map(VideoDto.VideoResponse::from);
+    }
+    public PageResponse<VideoDto.VideoResponse> getAllVideos(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<VideoEntity> videoPage = videoRepository.findAll(pageable);
+
+        Page<VideoDto.VideoResponse> dtoPage = videoPage.map(VideoDto.VideoResponse::from);
+        return PageResponse.from(dtoPage);
     }
 }
