@@ -3,12 +3,29 @@ import { useParams } from "react-router-dom";
 import { useVideoStore } from "@/store/useVideoStore";
 import { useCommentStore } from "@/store/useCommentStore";
 import { ThumbsUp, ThumbsDown, Eye, Send, User } from "lucide-react";
+import {api} from "@/api.axio.ts";
 
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
     const { currentVideo, fetchVideoDetails, toggleReaction } = useVideoStore();
     const { comments, fetchComments, addComment } = useCommentStore();
     const [text, setText] = useState("");
+
+    const [subscribed, setSubscribed] = useState(false);
+    const [subLoading, setSubLoading] = useState(false);
+
+    const handleSubscribe = async () => {
+        if (!currentVideo?.channelId || subLoading) return;
+        setSubLoading(true);
+        try {
+            const res = await api.post<{ subscribed: boolean }>(`/channels/${currentVideo.channelId}/subscribe`);
+            setSubscribed(res.data.subscribed);
+        } catch (err) {
+            console.error("Obunada xatolik:", err);
+        } finally {
+            setSubLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -61,8 +78,16 @@ export default function WatchPage() {
                             <p className="font-semibold text-sm text-zinc-100">YouTube Kanal</p>
                             <p className="text-xs text-zinc-400">Obunachilar yo'q</p>
                         </div>
-                        <button className="ml-2 px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 text-zinc-950 font-medium text-xs rounded-full transition">
-                            A'zo bo'lish
+                        <button
+                            onClick={handleSubscribe}
+                            disabled={subLoading}
+                            className={`ml-2 px-4 py-1.5 font-medium text-xs rounded-full transition ${
+                                subscribed
+                                    ? "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-950"
+                            }`}
+                        >
+                            {subscribed ? "A'zo bo'lingan" : "A'zo bo'lish"}
                         </button>
                     </div>
 

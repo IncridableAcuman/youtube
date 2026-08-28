@@ -6,6 +6,8 @@ import WatchPage from "@/pages/WatchPage";
 import MyVideosPage from "@/pages/MyVideosPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import ChannelPage from "@/pages/ChannelPage.tsx";
+import SearchPage from "@/pages/SearchPage.tsx";
 
 export default function App() {
     return (
@@ -21,6 +23,8 @@ export default function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/watch/:id" element={<WatchPage />} />
                         <Route path="/my-videos" element={<MyVideosPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route path="/channel/:channelId" element={<ChannelPage />} />
                     </Route>
                 </Route>
 

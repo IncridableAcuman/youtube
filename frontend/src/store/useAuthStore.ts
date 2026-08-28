@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface UserProfile {
     id: string;
@@ -18,14 +19,21 @@ interface AuthState {
     clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-    accessToken: null,
-    userId: null,
-    user: null,
-    isAuthenticated: false,
-    setAuth: (accessToken, userId, user = undefined) =>
-        set({ accessToken, userId, user: user || null, isAuthenticated: true }),
-    setUser: (user) => set({ user }),
-    clearAuth: () =>
-        set({ accessToken: null, userId: null, user: null, isAuthenticated: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            accessToken: null,
+            userId: null,
+            user: null,
+            isAuthenticated: false,
+            setAuth: (accessToken, userId, user = undefined) =>
+                set({ accessToken, userId, user: user || null, isAuthenticated: true }),
+            setUser: (user) => set({ user }),
+            clearAuth: () =>
+                set({ accessToken: null, userId: null, user: null, isAuthenticated: false }),
+        }),
+        {
+            name: "auth-storage", // localStorage kalit nomi
+        }
+    )
+);

@@ -26,6 +26,7 @@ export const RegisterForm: React.FC = () => {
         setErrorMsg(null);
         try {
             const response = await api.post("/auth/register", data);
+            localStorage.setItem("accessToken",response.data.accessToken);
             setAuth(response.data.accessToken, response.data.id);
             navigate("/");
         } catch (err: any) {

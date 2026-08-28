@@ -12,6 +12,7 @@ export interface Video {
     dislikes: number;
     createdAt: string;
     thumbnailUrl: string;
+    channelId:string;
 }
 
 export interface PageResponse<T> {

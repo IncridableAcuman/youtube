@@ -28,6 +28,7 @@ api.interceptors.response.use(
                 });
                 useAuthStore.getState().setAuth(data.accessToken, data.id);
                 originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+                localStorage.setItem("accessToken",data.accessToken);
                 return api(originalRequest);
             } catch (refreshError) {
                 useAuthStore.getState().clearAuth();

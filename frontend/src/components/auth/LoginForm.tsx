@@ -28,6 +28,7 @@ export const LoginForm: React.FC = () => {
             // 1. Login qilish
             const response = await api.post("/auth/login", data);
             setAuth(response.data.accessToken, response.data.id);
+            localStorage.setItem("accessToken",response.data.accessToken);
 
             // 2. Profil ma'lumotlarini yuklash
             const userRes = await api.get("/users/me");

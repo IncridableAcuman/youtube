@@ -29,7 +29,8 @@ public class VideoDto {
             int views,
             int likes,
             int dislikes,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            String channelId
     ){
         public static VideoResponse from(VideoEntity video){
             // YouTube rasm havolasini avtomatik yasash
@@ -47,7 +48,8 @@ public class VideoDto {
                     video.getViews(),
                     video.getLikes(),
                     video.getDislikes(),
-                    video.getCreatedAt()
+                    video.getCreatedAt(),
+                    video.getChannelId()
             );
         }
     }
