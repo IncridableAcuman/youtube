@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface VideoRepository extends MongoRepository<VideoEntity,String> {
-    List<VideoEntity> findByAuthorId(String authorId);
+    List<VideoEntity> findByUserId(String userId);
+    boolean existsByYoutubeKey(String youtubeKey);
 }

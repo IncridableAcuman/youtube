@@ -24,8 +24,8 @@ public class VideoController {
         return ResponseEntity.ok(videoService.addVideo(user,request));
     }
     @GetMapping("/{id}")
-    public ResponseEntity<VideoDto.VideoResponse> getVideo(@PathVariable String id){
-        return ResponseEntity.ok(videoService.getVideo(id));
+    public ResponseEntity<VideoDto.VideoResponse> getVideoDetails(@PathVariable String id){
+        return ResponseEntity.ok(videoService.getVideoDetails(id));
     }
     @GetMapping
     public ResponseEntity<List<VideoDto.VideoResponse>> getList(@AuthenticationPrincipal UserEntity user){
@@ -41,5 +41,13 @@ public class VideoController {
     public ResponseEntity<String> removeVideo(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
         videoService.removeVideo(user,id);
         return ResponseEntity.ok("Video removed");
+    }
+    @PostMapping("/{id}/like")
+    public ResponseEntity<VideoDto.VideoResponse> videoLike(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
+        return ResponseEntity.ok(videoService.toggleReaction(user,id,true));
+    }
+    @PostMapping("/{id}/dislike")
+    public ResponseEntity<VideoDto.VideoResponse> disLike(@AuthenticationPrincipal UserEntity user,@PathVariable String id){
+        return ResponseEntity.ok(videoService.toggleReaction(user,id,false));
     }
 }

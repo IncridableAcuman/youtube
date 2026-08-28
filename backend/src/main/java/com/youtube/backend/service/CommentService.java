@@ -7,6 +7,7 @@ import com.youtube.backend.entity.UserEntity;
 import com.youtube.backend.entity.VideoEntity;
 import com.youtube.backend.exception.CustomNotFoundException;
 import com.youtube.backend.repository.CommentRepository;
+import com.youtube.backend.repository.UserRepository;
 import com.youtube.backend.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final VideoRepository videoRepository;
+    private final UserRepository userRepository;
 
     public CommentDto.CommentResponse addCommentToVideo(UserEntity user,String videoId,CommentDto.CommentRequest request){
         VideoEntity video = videoRepository.findById(videoId).orElseThrow(()-> new CustomNotFoundException("Video not found: " + videoId));
@@ -28,7 +30,8 @@ public class CommentService {
         commentRepository.save(comment);
         return CommentDto.CommentResponse.from(comment, UserDto.UserResponse.from(user));
     }
-    public List<CommentDto.CommentResponse> getComments(UserEntity user,String videoId){
+    public List<CommentDto.CommentResponse> getComments(String userId ,String videoId){
+        UserEntity user = userRepository.findById(userId).orElseThrow(()-> new CustomNotFoundException("User not found: " + userId));
         List<CommentEntity> comments = commentRepository.findByVideoIdOrderByCreatedAtDesc(videoId);
         return comments
                 .stream()

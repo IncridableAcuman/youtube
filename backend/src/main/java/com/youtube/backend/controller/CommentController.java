@@ -23,7 +23,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.addCommentToVideo(user,videoId,request));
     }
     @GetMapping
-    public ResponseEntity<List<CommentDto.CommentResponse>> getComments(@AuthenticationPrincipal UserEntity user,@RequestParam String videoId){
-        return ResponseEntity.ok(commentService.getComments(user,videoId));
+    public ResponseEntity<List<CommentDto.CommentResponse>> getComments(@RequestParam String userId,@RequestParam String videoId){
+        return ResponseEntity.ok(commentService.getComments(userId,videoId));
     }
 }

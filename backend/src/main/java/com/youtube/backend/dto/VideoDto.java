@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
 public class VideoDto {
@@ -14,7 +15,7 @@ public class VideoDto {
        @NotBlank private String title;
        @NotBlank private String description;
        @NotBlank private String youtubeUrl;
-       @NotBlank private String youtubeKey;
+       @NotBlank private String duration;
     }
     public record VideoResponse(
             String id,
@@ -23,9 +24,17 @@ public class VideoDto {
             String description,
             String youtubeUrl,
             String youtubeKey,
+            String thumbnailUrl,
+            String duration,
+            int views,
+            int likes,
+            int dislikes,
             LocalDateTime createdAt
     ){
         public static VideoResponse from(VideoEntity video){
+            // YouTube rasm havolasini avtomatik yasash
+            String thumbnail = "https://img.youtube.com/vi/" + video.getYoutubeKey() + "/hqdefault.jpg";
+
             return new VideoResponse(
                     video.getId(),
                     video.getUserId(),
@@ -33,6 +42,11 @@ public class VideoDto {
                     video.getDescription(),
                     video.getYoutubeUrl(),
                     video.getYoutubeKey(),
+                    thumbnail,
+                    video.getDuration(),
+                    video.getViews(),
+                    video.getLikes(),
+                    video.getDislikes(),
                     video.getCreatedAt()
             );
         }
