@@ -191,9 +191,9 @@ public class VideoService {
         return VideoDto.VideoResponse.from(video, resolveChannelName(video));
     }
 
-    public Page<VideoDto.VideoResponse> searchVideos(String query, int page, int size) {
+    public PageResponse<VideoDto.VideoResponse> searchVideos(String query, int page, int size) {
         if (query == null || query.trim().isEmpty()) {
-            return Page.empty();
+            return PageResponse.from(Page.empty());
         }
 
         TextCriteria criteria = TextCriteria.forDefaultLanguage()
@@ -207,7 +207,10 @@ public class VideoService {
 
         Page<VideoEntity> videoPage = videoRepository.findAllBy(criteria, pageable);
         List<VideoDto.VideoResponse> dtoList = mapToVideoResponseList(videoPage.getContent());
-        return new PageImpl<>(dtoList, pageable, videoPage.getTotalElements());
+
+        return PageResponse.from(
+                new PageImpl<>(dtoList, pageable, videoPage.getTotalElements())
+        );
     }
 
     public PageResponse<VideoDto.VideoResponse> getAllVideos(

@@ -47,7 +47,7 @@ public class VideoController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<VideoDto.VideoResponse>> searchVideos(
+    public ResponseEntity<PageResponse<VideoDto.VideoResponse>> searchVideos(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

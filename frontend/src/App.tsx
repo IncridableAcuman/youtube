@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { ProtectedRoute, PublicRoute } from "@/routes/GuardRoutes";
+import { ProtectedRoute, PublicRoute, AdminRoute } from "@/routes/GuardRoutes";
 import { MainLayout } from "@/components/layout/MainLayout";
 import HomePage from "@/pages/HomePage";
 import WatchPage from "@/pages/WatchPage";
@@ -8,6 +8,9 @@ import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import ChannelPage from "@/pages/ChannelPage";
 import SearchPage from "@/pages/SearchPage";
+import {AdminDashboardPage} from "@/pages/AdminDashboardPage.tsx";
+
+// Admin Sahifalari
 
 export default function App() {
     return (
@@ -19,7 +22,7 @@ export default function App() {
                     <Route path="/register" element={<RegisterPage />} />
                 </Route>
 
-                {/* Himoyalangan yo'llar */}
+                {/* Himoyalangan oddiy foydalanuvchi yo'llari */}
                 <Route element={<ProtectedRoute />}>
                     <Route element={<MainLayout />}>
                         {/* Asosiy va Kategoriya sahifalari */}
@@ -31,16 +34,24 @@ export default function App() {
                         <Route path="/search" element={<SearchPage />} />
                         <Route path="/my-videos" element={<MyVideosPage />} />
 
-                        {/* Kanal yo'nalishlari (Moslik uchun 2 xil havola ham bitta komponentga ulandi) */}
+                        {/* Kanal yo'nalishlari */}
                         <Route path="/channel/:channelId" element={<ChannelPage />} />
                         <Route path="/channels/:channelId" element={<ChannelPage />} />
 
-                        {/* Sidebar bo'limlari (Vaqtinchalik mos sahifalarga yo'naltirilgan) */}
+                        {/* Sidebar bo'limlari */}
                         <Route path="/explore" element={<HomePage />} />
                         <Route path="/subscriptions" element={<HomePage />} />
                         <Route path="/history" element={<MyVideosPage />} />
                         <Route path="/watch-later" element={<MyVideosPage />} />
                         <Route path="/liked-videos" element={<MyVideosPage />} />
+                    </Route>
+                </Route>
+
+                {/* Faqat ADMIN uchun himoyalangan yo'llar */}
+                <Route element={<AdminRoute />}>
+                    <Route element={<MainLayout />}>
+                        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                        <Route path="/admin/users" element={<AdminUsersPage />} />
                     </Route>
                 </Route>
 

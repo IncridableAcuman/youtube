@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -36,14 +37,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = null;
         String email = null;
 
-        if (header != null && header.startsWith("Bearer ")) {
-            token = header.substring(7);
-            try {
-                email = jwtUtil.extractSubject(token);
-            } catch (ExpiredJwtException e) {
-                log.warn("JWT token muddati o'tgan: {}", e.getMessage());
-            } catch (JwtException e) {
-                log.warn("Yaroqsiz JWT token: {}", e.getMessage());
+        // Token mavjudligi va to'g'ri JWT formati (kamida 2 ta nuqta borligi) tekshiriladi
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            String extractedToken = header.substring(7).trim();
+
+            if (StringUtils.hasText(extractedToken)
+                    && !extractedToken.equals("undefined")
+                    && !extractedToken.equals("null")
+                    && extractedToken.split("\\.").length == 3) {
+                token = extractedToken;
+                try {
+                    email = jwtUtil.extractSubject(token);
+                } catch (ExpiredJwtException e) {
+                    log.warn("JWT token muddati o'tgan: {}", e.getMessage());
+                } catch (JwtException e) {
+                    log.warn("Yaroqsiz JWT token: {}", e.getMessage());
+                }
             }
         }
 

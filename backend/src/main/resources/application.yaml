@@ -7,7 +7,9 @@ spring:
   application:
     name: backend
   data:
-    mongodb: ${DB_URL}
+    mongodb:
+      uri: ${DB_URL}
+      auto-index-creation: true
 
 
 jwt:
