@@ -1,12 +1,19 @@
-// src/types/comment.ts
+export interface CommentUser {
+    id: string;
+    name?: string;
+    username?: string;
+    email?: string;
+    avatarUrl?: string;
+}
+
 export interface Comment {
     id: string;
-    userId: string;
     videoId: string;
-    text: string;
+    user: CommentUser;
+    content: string;
     createdAt: string;
 }
 
 export interface CommentRequest {
-    text: string;
+    content: string;
 }

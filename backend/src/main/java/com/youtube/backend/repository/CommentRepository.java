@@ -3,13 +3,8 @@ package com.youtube.backend.repository;
 import com.youtube.backend.entity.CommentEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository; // Nemki JPA bo'lsa JpaRepository
 
-import java.util.List;
-
-@Repository
-public interface CommentRepository extends MongoRepository<CommentEntity,String> {
-    List<CommentEntity> findByVideoIdOrderByCreatedAtDesc(String videoId);
+public interface CommentRepository extends MongoRepository<CommentEntity, String> {
     Page<CommentEntity> findByVideoId(String videoId, Pageable pageable);
 }

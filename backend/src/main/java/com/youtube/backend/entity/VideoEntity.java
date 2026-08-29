@@ -21,20 +21,31 @@ public class VideoEntity {
     @Id
     private String id;
     private String userId;
+
     @TextIndexed(weight = 3)
     private String title;
+
     @TextIndexed(weight = 1)
     private String description;
+
     private String youtubeUrl;
+
     @Indexed(unique = true)
     private String youtubeKey;
+
     private String duration;
     private int views = 0;
+
+    @TextIndexed(weight = 2)
     private Set<String> tags;
+
+    private String category;
+
     private int likes = 0;
     private int dislikes = 0;
     private String channelId;
     private LocalDateTime createdAt = LocalDateTime.now();
+
     @TextScore
     private Float score;
 
@@ -46,7 +57,7 @@ public class VideoEntity {
         this.likes = Math.max(0, this.likes - 1);
     }
 
-    public void incrementDislikes() { // incrementDisLikes -> incrementDislikes
+    public void incrementDislikes() {
         this.dislikes++;
     }
 

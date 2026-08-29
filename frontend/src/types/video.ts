@@ -1,4 +1,3 @@
-// src/types/video.ts
 export interface Video {
     id: string;
     userId: string;
@@ -14,6 +13,8 @@ export interface Video {
     thumbnailUrl: string;
     channelId: string;
     channelName?: string;
+    category?: string;  // <--- YANGI
+    tags?: string[];    // <--- YANGI
 }
 
 export interface PageResponse<T> {
@@ -30,4 +31,6 @@ export interface VideoRequest {
     description: string;
     youtubeUrl: string;
     duration: string;
+    category?: string;  // <--- YANGI
+    tags?: string[];    // <--- YANGI
 }

@@ -94,6 +94,8 @@ public class VideoService {
         video.setYoutubeUrl(request.getYoutubeUrl());
         video.setYoutubeKey(extractedKey);
         video.setDuration(request.getDuration());
+        video.setCategory(request.getCategory()); //
+        video.setTags(request.getTags());         //
 
         channelRepository.findByUserId(user.getId())
                 .ifPresent(channel -> video.setChannelId(channel.getId()));
@@ -101,7 +103,6 @@ public class VideoService {
         videoRepository.save(video);
         return VideoDto.VideoResponse.from(video, resolveChannelName(video));
     }
-
     public List<VideoDto.VideoResponse> getList(UserEntity user) {
         List<VideoEntity> list = videoRepository.findByUserId(user.getId());
         return mapToVideoResponseList(list);
@@ -120,6 +121,9 @@ public class VideoService {
         Optional.ofNullable(request.getTitle()).ifPresent(video::setTitle);
         Optional.ofNullable(request.getDescription()).ifPresent(video::setDescription);
         Optional.ofNullable(request.getYoutubeUrl()).ifPresent(video::setYoutubeUrl);
+        Optional.ofNullable(request.getCategory()).ifPresent(video::setCategory);
+        Optional.ofNullable(request.getTags()).ifPresent(video::setTags);
+
         videoRepository.save(video);
         return VideoDto.VideoResponse.from(video, resolveChannelName(video));
     }

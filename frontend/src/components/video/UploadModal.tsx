@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "@/api.axio";
-import { X, Upload, Clock, Type, AlignLeft, AlertCircle, Loader2 } from "lucide-react";
+import { X, Upload, Clock, Type, AlignLeft, AlertCircle, Loader2, Folder, Tag } from "lucide-react";
 import { FaYoutube } from "react-icons/fa";
 
 interface UploadModalProps {
@@ -9,12 +9,25 @@ interface UploadModalProps {
     onSuccess: () => void;
 }
 
+const CATEGORIES = [
+    "Texnologiya",
+    "Ta'lim",
+    "O'yinlar",
+    "Kino va Film",
+    "Yangiliklar",
+    "Sport",
+    "Musiqa",
+    "Boshqa",
+];
+
 export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
         youtubeUrl: "",
         duration: "10:00",
+        category: "Texnologiya",
+        tagsInput: "",
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -34,9 +47,31 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
         setLoading(true);
         setError("");
 
+        // Vergul bilan ajratilgan teglarni massivga ajratish
+        const tags = formData.tagsInput
+            .split(",")
+            .map((t) => t.trim().toLowerCase())
+            .filter((t) => t.length > 0);
+
+        const payload = {
+            title: formData.title,
+            description: formData.description,
+            youtubeUrl: formData.youtubeUrl,
+            duration: formData.duration,
+            category: formData.category,
+            tags: tags,
+        };
+
         try {
-            await api.post("/videos", formData);
-            setFormData({ title: "", description: "", youtubeUrl: "", duration: "10:00" });
+            await api.post("/videos", payload);
+            setFormData({
+                title: "",
+                description: "",
+                youtubeUrl: "",
+                duration: "10:00",
+                category: "Texnologiya",
+                tagsInput: "",
+            });
             onSuccess();
             onClose();
         } catch (err: any) {
@@ -51,13 +86,13 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={onClose}
         >
-            {/* Modal Kartasi - Faqat Dark Tema */}
+            {/* Modal Kartasi */}
             <div
-                className="w-full max-w-lg rounded-2xl bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-2xl overflow-hidden"
+                className="w-full max-w-lg rounded-2xl bg-zinc-900 text-zinc-100 border border-zinc-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/50">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/50 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
                             <Upload className="w-5 h-5" />
@@ -67,7 +102,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                                 Yangi Video Joylash
                             </h2>
                             <p className="text-xs text-zinc-400 mt-1">
-                                Kanalga yangi video yuklash
+                                Kanalga yangi video va teglar yuklash
                             </p>
                         </div>
                     </div>
@@ -79,8 +114,8 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                {/* Form Body - Scrollable */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
                     {error && (
                         <div className="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-950/40 border border-red-900/50 rounded-xl">
                             <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
@@ -99,7 +134,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                             placeholder="Video sarlavhasini kiriting..."
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition"
                         />
                     </div>
 
@@ -114,7 +149,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                             placeholder="https://www.youtube.com/watch?v=..."
                             value={formData.youtubeUrl}
                             onChange={(e) => setFormData({ ...formData, youtubeUrl: e.target.value })}
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition"
                         />
 
                         {youtubeId && (
@@ -132,18 +167,51 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                         )}
                     </div>
 
-                    {/* Davomiyligi Input */}
+                    {/* Kategoriya va Davomiyligi (2-kolonka) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
+                                <Folder className="w-3.5 h-3.5 text-zinc-400" /> Kategoriya
+                            </label>
+                            <select
+                                value={formData.category}
+                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 focus:outline-none focus:border-blue-500 transition cursor-pointer"
+                            >
+                                {CATEGORIES.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
+                                <Clock className="w-3.5 h-3.5 text-zinc-400" /> Davomiyligi (MM:SS)
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                placeholder="10:00"
+                                value={formData.duration}
+                                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Teglar (Tags) Input */}
                     <div className="space-y-1.5">
                         <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
-                            <Clock className="w-3.5 h-3.5 text-zinc-400" /> Davomiyligi (MM:SS)
+                            <Tag className="w-3.5 h-3.5 text-zinc-400" /> Teglar (vergul bilan ajratib yozing)
                         </label>
                         <input
                             type="text"
-                            required
-                            placeholder="10:00"
-                            value={formData.duration}
-                            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                            placeholder="java, spring boot, react, tutorial"
+                            value={formData.tagsInput}
+                            onChange={(e) => setFormData({ ...formData, tagsInput: e.target.value })}
+                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition"
                         />
                     </div>
 
@@ -157,7 +225,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                             placeholder="Video haqida qisqacha ma'lumot..."
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none transition"
+                            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 resize-none transition"
                         />
                     </div>
 

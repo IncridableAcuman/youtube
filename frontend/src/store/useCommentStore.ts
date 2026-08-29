@@ -21,7 +21,7 @@ export const useCommentStore = create<CommentState>((set) => ({
         set({ loading: true, error: null });
         try {
             const res = await api.get<PageResponse<Comment>>(`/comments/video/${videoId}?page=${page}&size=${size}`);
-            set({ comments: res.data.content, loading: false });
+            set({ comments: res.data.content || [], loading: false });
         } catch (err: any) {
             set({ error: err.response?.data?.message || "Izohlarni yuklab bo'lmadi", loading: false });
         }
@@ -29,7 +29,8 @@ export const useCommentStore = create<CommentState>((set) => ({
 
     addComment: async (videoId: string, text: string) => {
         try {
-            const res = await api.post<Comment>(`/comments?videoId=${videoId}`, { text });
+            // Backend `CommentRequest` binosan { content: text } yuboriladi
+            const res = await api.post<Comment>(`/comments?videoId=${videoId}`, { content: text });
             set((state) => ({ comments: [res.data, ...state.comments] }));
             return true;
         } catch (err: any) {

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 public class VideoDto {
@@ -15,6 +16,8 @@ public class VideoDto {
         @NotBlank private String description;
         @NotBlank private String youtubeUrl;
         @NotBlank private String duration;
+        private String category;  // <--- YANGI
+        private Set<String> tags; // <--- YANGI
     }
 
     public record VideoResponse(
@@ -31,7 +34,9 @@ public class VideoDto {
             int dislikes,
             LocalDateTime createdAt,
             String channelId,
-            String channelName // <--- Kanal nomi qo'shildi
+            String channelName,
+            String category,  // <--- YANGI
+            Set<String> tags  // <--- YANGI
     ){
         public static VideoResponse from(VideoEntity video, String channelName){
             String thumbnail = "https://img.youtube.com/vi/" + video.getYoutubeKey() + "/hqdefault.jpg";
@@ -50,7 +55,9 @@ public class VideoDto {
                     video.getDislikes(),
                     video.getCreatedAt(),
                     video.getChannelId(),
-                    channelName
+                    channelName,
+                    video.getCategory(),
+                    video.getTags()
             );
         }
 
