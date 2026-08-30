@@ -11,19 +11,21 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j
-@Configuration
+@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -33,41 +35,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String header = request.getHeader("Authorization");
-        String token = null;
-        String email = null;
 
-        // Token mavjudligi va to'g'ri JWT formati (kamida 2 ta nuqta borligi) tekshiriladi
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            String extractedToken = header.substring(7).trim();
+        String token = parseBearerToken(request);
 
-            if (StringUtils.hasText(extractedToken)
-                    && !extractedToken.equals("undefined")
-                    && !extractedToken.equals("null")
-                    && extractedToken.split("\\.").length == 3) {
-                token = extractedToken;
-                try {
-                    email = jwtUtil.extractSubject(token);
-                } catch (ExpiredJwtException e) {
-                    log.warn("JWT token muddati o'tgan: {}", e.getMessage());
-                } catch (JwtException e) {
-                    log.warn("Yaroqsiz JWT token: {}", e.getMessage());
+        if (token != null) {
+            try {
+                String email = jwtUtil.extractSubject(token);
+
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            }
-        }
-
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            if (jwtUtil.validateToken(token)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } catch (ExpiredJwtException e) {
+                log.warn("JWT token muddati o'tgan: {}", e.getMessage());
+            } catch (JwtException | IllegalArgumentException e) {
+                log.warn("Yaroqsiz JWT token: {}", e.getMessage());
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String parseBearerToken(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            String token = headerAuth.substring(7).trim();
+            if (StringUtils.hasText(token) && !"null".equalsIgnoreCase(token) && !"undefined".equalsIgnoreCase(token)) {
+                return token;
+            }
+        }
+        return null;
     }
 }

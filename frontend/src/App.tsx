@@ -12,10 +12,10 @@ import ChannelPage from "@/pages/ChannelPage";
 import SearchPage from "@/pages/SearchPage";
 
 // Admin Sahifalari
-import AdminDashboardPage from "@/pages/AdminDashboardPage"; // YANGI
-import AdminUsersPage from "@/pages/AdminUsersPage";
-import AdminVideosPage from "@/pages/AdminVideosPage";       // YANGI
-import AdminChannelsPage from "@/pages/AdminChannelsPage";   // YANGI
+import {AdminDashboardPage} from "@/pages/AdminDashboardPage"; // YANGI
+import {AdminUsersPage} from "@/pages/AdminUsersPage";
+import {AdminVideosPage} from "@/pages/AdminVideosPage";       // YANGI
+import {AdminChannelsPage} from "@/pages/AdminChannelsPage";   // YANGI
 
 export default function App() {
     return (

@@ -1,133 +1,88 @@
-import { useEffect } from "react";
-import { useAdminStore } from "@/store/useAdminStore";
+import React, { useEffect, useState } from "react";
+import { useAdminStore, type AdminUser } from "@/store/useAdminStore";
+import { Loader2, ShieldAlert, ShieldCheck, Search } from "lucide-react";
 
-export default function AdminUsersPage() {
-    const {
-        usersData,
-        loadingUsers,
-        searchQuery,
-        page,
-        setSearchQuery,
-        setPage,
-        fetchUsers,
-        deleteUser,
-    } = useAdminStore();
+export const AdminUsersPage: React.FC = () => {
+    const { users, fetchUsers, toggleUserBan, changeUserRole, loading } = useAdminStore();
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
+    const filteredUsers = users.filter((u) =>
+        u.fullName.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold">Foydalanuvchilar Boshqaruvi</h1>
-                    <p className="text-xs text-zinc-500 mt-1">Foydalanuvchilar ro'yxati, rol va o'chirish amallari</p>
+            <div className="flex items-center justify-between gap-4">
+                <h1 className="text-2xl font-bold tracking-tight">Foydalanuvchilar Moderatsiyasi</h1>
+                <div className="relative w-64">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                    <input
+                        type="text"
+                        placeholder="Qidiruv..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+                    />
                 </div>
-
-                {/* Qidiruv Input */}
-                <input
-                    type="text"
-                    placeholder="Ism yoki email bo'yicha qidiruv..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-72 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
-                />
             </div>
 
-            {/* Jadval */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-                {loadingUsers ? (
-                    <div className="p-12 text-center text-zinc-500 text-sm">Foydalanuvchilar yuklanmoqda...</div>
-                ) : (
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                        <tr className="bg-zinc-50 dark:bg-zinc-800/50 text-[11px] uppercase font-bold text-zinc-400 border-b dark:border-zinc-800">
+            {loading ? (
+                <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                </div>
+            ) : (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+                    <table className="w-full text-left text-sm text-zinc-300">
+                        <thead className="bg-zinc-950 text-xs text-zinc-400 uppercase border-b border-zinc-800">
+                        <tr>
                             <th className="p-4">Foydalanuvchi</th>
                             <th className="p-4">Email</th>
                             <th className="p-4">Rol</th>
+                            <th className="p-4">Holat</th>
                             <th className="p-4 text-right">Amallar</th>
                         </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800 text-sm">
-                        {usersData?.content?.length ? (
-                            usersData.content.map((user) => (
-                                <tr key={user.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30">
-                                    <td className="p-4 flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center font-bold text-xs uppercase">
-                                            {user.avatar ? (
-                                                <img src={user.avatar} alt={user.username} className="w-full h-full rounded-full object-cover" />
-                                            ) : (
-                                                user.username?.[0] || "U"
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-sm">{user.fullName || user.username}</p>
-                                            <p className="text-xs text-zinc-400">@{user.username}</p>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-zinc-500">{user.email}</td>
-                                    <td className="p-4">
-                      <span
-                          className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full ${
-                              user.role === "ADMIN"
-                                  ? "bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400"
-                                  : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                          }`}
-                      >
-                        {user.role}
-                      </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <button
-                                            onClick={() => {
-                                                if (confirm("Ushbu foydalanuvchini o'chirishni tasdiqlaysizmi?")) {
-                                                    deleteUser(user.id);
-                                                }
-                                            }}
-                                            className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600 hover:text-white text-red-600 rounded-lg text-xs font-semibold transition"
-                                        >
-                                            O'chirish
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={4} className="p-8 text-center text-zinc-400 text-sm">
-                                    Foydalanuvchilar topilmadi
+                        <tbody className="divide-y divide-zinc-800">
+                        {filteredUsers.map((user) => (
+                            <tr key={user.id} className="hover:bg-zinc-800/40 transition">
+                                <td className="p-4 font-semibold text-white">{user.fullName} (@{user.username})</td>
+                                <td className="p-4 text-zinc-400">{user.email}</td>
+                                <td className="p-4">
+                                    <select
+                                        value={user.role}
+                                        onChange={(e) => changeUserRole(user.id, e.target.value as AdminUser["role"])}
+                                        className="bg-zinc-950 border border-zinc-800 text-xs rounded-lg px-2.5 py-1 text-zinc-200 focus:outline-none focus:border-red-600"
+                                    >
+                                        <option value="USER">USER</option>
+                                        <option value="MODERATOR">MODERATOR</option>
+                                        <option value="ADMIN">ADMIN</option>
+                                    </select>
+                                </td>
+                                <td className="p-4">
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${user.banned ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"}`}>
+                                            {user.banned ? "BLOKLANGAN" : "FAOL"}
+                                        </span>
+                                </td>
+                                <td className="p-4 text-right">
+                                    <button
+                                        onClick={() => toggleUserBan(user.id)}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 ml-auto ${user.banned ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white"}`}
+                                    >
+                                        {user.banned ? <ShieldCheck className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />}
+                                        {user.banned ? "Plokdan chiqarish" : "Bloklash"}
+                                    </button>
                                 </td>
                             </tr>
-                        )}
+                        ))}
                         </tbody>
                     </table>
-                )}
-
-                {/* Paginatsiya */}
-                {usersData && usersData.totalPages > 1 && (
-                    <div className="flex justify-between items-center p-4 border-t border-zinc-100 dark:border-zinc-800">
-            <span className="text-xs text-zinc-400">
-              Sahifa {page + 1} / {usersData.totalPages}
-            </span>
-                        <div className="flex gap-2">
-                            <button
-                                disabled={page === 0}
-                                onClick={() => setPage(page - 1)}
-                                className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-semibold disabled:opacity-50"
-                            >
-                                Oldingi
-                            </button>
-                            <button
-                                disabled={page + 1 >= usersData.totalPages}
-                                onClick={() => setPage(page + 1)}
-                                className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-semibold disabled:opacity-50"
-                            >
-                                Keyingi
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
-}
+};
