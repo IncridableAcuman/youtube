@@ -1,28 +1,34 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/useAuthStore"; // Auth store'ingiz mos kelishi kerak
 
-// Faqat autentifikatsiyadan o'tgan foydalanuvchilar uchun
 export const ProtectedRoute = () => {
     const { isAuthenticated } = useAuthStore();
     const location = useLocation();
 
-
-
     if (!isAuthenticated) {
-        // Kirishdan avvalgi turgan sahifasini saqlab qoladi
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
-
     return <Outlet />;
 };
 
-// Faqat tizimga kirmagan mehmonlar uchun (Login/Register)
 export const PublicRoute = () => {
     const { isAuthenticated } = useAuthStore();
-
-
-
     if (isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
+    return <Outlet />;
+};
+
+// Admin sahifalari uchun guard
+export const AdminRoute = () => {
+    const { isAuthenticated, user } = useAuthStore();
+    const location = useLocation();
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (user?.role !== "USER") {
         return <Navigate to="/" replace />;
     }
 

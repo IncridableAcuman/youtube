@@ -1,14 +1,13 @@
 import { create } from 'zustand';
 import {
     adminService,
-    type DashboardStats,
     type UserResponse,
-    type PageResponse // PageResponse endi adminService.ts dan olindi
+    type PageResponse, type DashboardStatsResponse // PageResponse endi adminService.ts dan olindi
 } from "@/service/adminService.ts";
 
 interface AdminState {
     // Statik Ma'lumotlar
-    stats: DashboardStats | null;
+    stats: DashboardStatsResponse | null;
     loadingStats: boolean;
     fetchStats: () => Promise<void>;
 
@@ -40,7 +39,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     fetchStats: async () => {
         set({ loadingStats: true });
         try {
-            const stats = await adminService.getDashboardStats();
+            const stats:DashboardStatsResponse = await adminService.getDashboardStats();
             set({ stats, loadingStats: false });
         } catch (error) {
             console.error('Dashboard statistikasini yuklashda xatolik:', error);
