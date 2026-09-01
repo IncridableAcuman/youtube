@@ -3,9 +3,11 @@ export interface AuthResponse {
     id: string;
 }
 
-export interface User {
+export interface UserProfile {
     id: string;
     fullName?: string;
     username?: string;
     email?: string;
+    avatar?: string;
+    role: string;
 }
