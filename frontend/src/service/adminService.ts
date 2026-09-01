@@ -1,4 +1,4 @@
-import {api} from "@/api.axio.ts";
+import { api } from "@/api.axio";
 
 export interface DailyStat {
     date: string;
@@ -21,13 +21,8 @@ export interface UserResponse {
     username: string;
     email: string;
     avatar: string;
-    role: "ADMIN" | "USER";
-}
-export interface DashboardStats {
-    totalUsers: number;
-    totalVideos: number;
-    totalChannels: number;
-    totalViews: number;
+    role: "ADMIN" | "USER" | "MODERATOR";
+    enabled: boolean;
 }
 
 export interface VideoResponse {
@@ -50,7 +45,8 @@ export interface ChannelResponse {
     name: string;
     handle: string;
     description: string;
-    subscribersCount: number;
+    subscribers: number;
+    userId: string;
     createdAt: string;
 }
 
@@ -58,8 +54,9 @@ export interface CommentResponse {
     id: string;
     videoId: string;
     content: string;
+    userId: string;
     createdAt: string;
-    user: UserResponse;
+    user?: UserResponse;
 }
 
 export interface PageResponse<T> {
@@ -68,32 +65,49 @@ export interface PageResponse<T> {
     size: number;
     totalElements: number;
     totalPages: number;
+    last: boolean;
 }
 
 export const adminService = {
-    // Stats
+    // 1. Dashboard Statistikasi
     getDashboardStats: async () => {
         const res = await api.get<DashboardStatsResponse>("/admin/dashboard/stats");
         return res.data;
     },
 
-    // Users
+    // 2. Foydalanuvchilar (Users) Boshqaruvi
     getUsers: async (query = "", page = 0, size = 10) => {
         const res = await api.get<PageResponse<UserResponse>>("/admin/users", { params: { query, page, size } });
         return res.data;
     },
     deleteUser: async (id: string) => api.delete(`/admin/users/${id}`),
+    toggleUserBan: async (id: string) => {
+        const res = await api.patch<UserResponse>(`/admin/users/${id}/toggle-ban`);
+        return res.data;
+    },
+    changeUserRole: async (id: string, role: "ADMIN" | "USER" | "MODERATOR") => {
+        const res = await api.patch<UserResponse>(`/admin/users/${id}/role`, null, { params: { role } });
+        return res.data;
+    },
 
-    // Videos
+    // 3. Videolar (Videos) Boshqaruvi
     getVideos: async (page = 0, size = 10) => {
-        const res = await api.get<PageResponse<VideoResponse>>("/videos", { params: { page, size } });
+        const res = await api.get<PageResponse<VideoResponse>>("/admin/videos", { params: { page, size } });
         return res.data;
     },
-    deleteVideo: async (id: string) => api.delete(`/videos/${id}`),
+    deleteVideo: async (id: string) => api.delete(`/admin/videos/${id}`),
 
-    // Comments
-    getVideoComments: async (videoId: string, page = 0, size = 10) => {
-        const res = await api.get<PageResponse<CommentResponse>>(`/comments/video/${videoId}`, { params: { page, size } });
+    // 4. Kanallar (Channels) Boshqaruvi
+    getChannels: async (page = 0, size = 10) => {
+        const res = await api.get<PageResponse<ChannelResponse>>("/admin/channels", { params: { page, size } });
         return res.data;
     },
+    deleteChannel: async (id: string) => api.delete(`/admin/channels/${id}`),
+
+    // 5. Izohlar (Comments) Boshqaruvi
+    getComments: async (page = 0, size = 10) => {
+        const res = await api.get<PageResponse<CommentResponse>>("/admin/comments", { params: { page, size } });
+        return res.data;
+    },
+    deleteComment: async (id: string) => api.delete(`/admin/comments/${id}`),
 };

@@ -1,78 +1,229 @@
-import React, { useEffect } from "react";
-import { useAdminStore } from "@/store/useAdminStore";
-import { Loader2, Check, X, Trash2 } from "lucide-react";
+// src/pages/admin/AdminVideosPage.tsx
+import React, { useEffect, useState } from "react";
+import { useAdminStore, type AdminVideo } from "@/store/useAdminStore";
+import {
+    Loader2,
+    Check,
+    X,
+    Trash2,
+    Search,
+    Video as VideoIcon,
+    VideoOff,
+    Eye,
+    Tv,
+} from "lucide-react";
 
 export const AdminVideosPage: React.FC = () => {
     const { videos, fetchVideos, updateVideoStatus, deleteVideo, loading } = useAdminStore();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchVideos();
     }, [fetchVideos]);
 
-    return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold tracking-tight">Videolar Moderatsiyasi</h1>
+    const handleStatusUpdate = async (id: string, status: AdminVideo["status"]) => {
+        setActionLoadingId(id);
+        try {
+            await updateVideoStatus(id, status);
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
 
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Haqiqatan ham ushbu videoni o'chirib tashlamoqchimisiz?")) return;
+        setActionLoadingId(id);
+        try {
+            await deleteVideo(id);
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    // Video sarlavhasi yoki kanal nomi bo'yicha izlash filtri
+    const filteredVideos = videos.filter((video) => {
+        const query = searchTerm.toLowerCase();
+        const titleMatches = video.title.toLowerCase().includes(query);
+        const channelMatches = video.channelName ? video.channelName.toLowerCase().includes(query) : false;
+        return titleMatches || channelMatches;
+    });
+
+    const getStatusBadge = (status?: AdminVideo["status"]) => {
+        switch (status) {
+            case "APPROVED":
+                return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                        TASDIQLANGAN
+                    </span>
+                );
+            case "REJECTED":
+                return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
+                        RAD ETILGAN
+                    </span>
+                );
+            case "PENDING":
+            default:
+                return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                        KUTILMOQDA
+                    </span>
+                );
+        }
+    };
+
+    return (
+        <div className="space-y-6 max-w-7xl mx-auto">
+            {/* Header va Qidiruv Paneli */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2.5 text-zinc-900 dark:text-white">
+                        <VideoIcon className="w-6 h-6 text-red-600" />
+                        Videolar Moderatsiyasi
+                    </h1>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                        Yuklangan videolarni ko'rib chiqish, tasdiqlash, rad etish va o'chirish
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className="relative flex-1 md:w-72">
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Sarlavha yoki kanal bo'yicha..."
+                            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-red-600/30 focus:border-red-600 transition shadow-sm"
+                        />
+                    </div>
+                    <div className="px-3.5 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/60 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 shrink-0 shadow-sm">
+                        Jami: <span className="text-red-600 font-bold">{filteredVideos.length}</span> ta
+                    </div>
+                </div>
+            </div>
+
+            {/* Asosiy Tarkib */}
             {loading ? (
-                <div className="flex justify-center py-12">
+                <div className="flex flex-col items-center justify-center py-24 space-y-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
                     <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                    <p className="text-xs font-medium text-zinc-500">Videolar yuklanmoqda...</p>
+                </div>
+            ) : filteredVideos.length === 0 ? (
+                /* Empty State */
+                <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm text-center">
+                    <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900/40 flex items-center justify-center text-red-600 mb-4 shadow-inner">
+                        <VideoOff className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-1">
+                        {searchTerm ? "Qidiruv bo'yicha video topilmadi" : "Hozircha videolar mavjud emas"}
+                    </h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm">
+                        {searchTerm
+                            ? "Kiritilgan kalit so'z bo'yicha hech qanday video topilmadi."
+                            : "Platformada moderatsiyadan o'tishi kerak bo'lgan videolar mavjud emas."}
+                    </p>
                 </div>
             ) : (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                    <table className="w-full text-left text-sm text-zinc-300">
-                        <thead className="bg-zinc-950 text-xs text-zinc-400 uppercase border-b border-zinc-800">
-                        <tr>
-                            <th className="p-4">Sarlavha</th>
-                            <th className="p-4">Kanal</th>
-                            <th className="p-4">Ko'rishlar</th>
-                            <th className="p-4">Status</th>
-                            <th className="p-4 text-right">Amallar</th>
-                        </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-800">
-                        {videos.map((video) => (
-                            <tr key={video.id} className="hover:bg-zinc-800/40 transition">
-                                <td className="p-4 font-semibold text-white truncate max-w-xs">{video.title}</td>
-                                <td className="p-4 text-zinc-400">{video.channelName || "Noma'lum"}</td>
-                                <td className="p-4 text-zinc-400">
-                                    {(video.viewsCount ?? video.views ?? 0).toLocaleString()}
-                                </td>
-                                <td className="p-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                            video.status === "APPROVED" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
-                                                video.status === "PENDING" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
-                                                    "bg-red-500/10 text-red-500 border border-red-500/20"
-                                        }`}>
-                                            {video.status || "PENDING"}
-                                        </span>
-                                </td>
-                                <td className="p-4 text-right space-x-2">
-                                    <button
-                                        onClick={() => updateVideoStatus(video.id, "APPROVED")}
-                                        className="p-1.5 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg transition"
-                                        title="Tasdiqlash"
-                                    >
-                                        <Check className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => updateVideoStatus(video.id, "REJECTED")}
-                                        className="p-1.5 bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white rounded-lg transition"
-                                        title="Rad etish"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => deleteVideo(video.id)}
-                                        className="p-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition"
-                                        title="O'chirish"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                /* Jadval */
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm transition">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-zinc-700 dark:text-zinc-300">
+                            <thead className="bg-zinc-50 dark:bg-zinc-800/60 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-800">
+                                <tr>
+                                    <th className="py-3.5 px-5">Sarlavha</th>
+                                    <th className="py-3.5 px-5">Kanal</th>
+                                    <th className="py-3.5 px-5">Ko'rishlar</th>
+                                    <th className="py-3.5 px-5">Status</th>
+                                    <th className="py-3.5 px-5 text-right">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+                                {filteredVideos.map((video) => {
+                                    const isUpdating = actionLoadingId === video.id;
+                                    const viewsCount = video.viewsCount ?? video.views ?? 0;
+
+                                    return (
+                                        <tr
+                                            key={video.id}
+                                            className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition group"
+                                        >
+                                            {/* Sarlavha */}
+                                            <td className="py-4 px-5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-xl bg-red-600/10 dark:bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                                                        <VideoIcon className="w-4 h-4" />
+                                                    </div>
+                                                    <span
+                                                        className="font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1 max-w-xs md:max-w-sm"
+                                                        title={video.title}
+                                                    >
+                                                        {video.title}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            {/* Kanal */}
+                                            <td className="py-4 px-5">
+                                                <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 font-medium">
+                                                    <Tv className="w-3.5 h-3.5 text-zinc-400" />
+                                                    {video.channelName || "Noma'lum"}
+                                                </div>
+                                            </td>
+
+                                            {/* Ko'rishlar */}
+                                            <td className="py-4 px-5">
+                                                <div className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 font-medium">
+                                                    <Eye className="w-3.5 h-3.5 text-zinc-400" />
+                                                    {viewsCount.toLocaleString()}
+                                                </div>
+                                            </td>
+
+                                            {/* Status Badge */}
+                                            <td className="py-4 px-5">
+                                                {getStatusBadge(video.status)}
+                                            </td>
+
+                                            {/* Amallar */}
+                                            <td className="py-4 px-5 text-right whitespace-nowrap">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(video.id, "APPROVED")}
+                                                        disabled={isUpdating || video.status === "APPROVED"}
+                                                        className="p-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-xl transition border border-emerald-500/20 disabled:opacity-40 disabled:hover:bg-emerald-500/10 disabled:hover:text-emerald-600 active:scale-95"
+                                                        title="Tasdiqlash"
+                                                    >
+                                                        <Check className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(video.id, "REJECTED")}
+                                                        disabled={isUpdating || video.status === "REJECTED"}
+                                                        className="p-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white rounded-xl transition border border-amber-500/20 disabled:opacity-40 disabled:hover:bg-amber-500/10 disabled:hover:text-amber-600 active:scale-95"
+                                                        title="Rad etish"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(video.id)}
+                                                        disabled={isUpdating}
+                                                        className="p-1.5 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white rounded-xl transition border border-red-500/20 disabled:opacity-40 active:scale-95"
+                                                        title="O'chirish"
+                                                    >
+                                                        {isUpdating ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="w-4 h-4" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>
