@@ -16,6 +16,7 @@ import {AdminDashboardPage} from "@/pages/AdminDashboardPage"; // YANGI
 import {AdminUsersPage} from "@/pages/AdminUsersPage";
 import {AdminVideosPage} from "@/pages/AdminVideosPage";       // YANGI
 import {AdminChannelsPage} from "@/pages/AdminChannelsPage";   // YANGI
+import { AdminCommentsPage } from "./pages/AdminCommentsPage";
 
 export default function App() {
     return (
@@ -56,6 +57,7 @@ export default function App() {
                         <Route path="/admin/users" element={<AdminUsersPage />} />
                         <Route path="/admin/videos" element={<AdminVideosPage />} />
                         <Route path="/admin/channels" element={<AdminChannelsPage />} />
+                        <Route path="/admin/comments" element={<AdminCommentsPage/>} />
                     </Route>
                 </Route>
 

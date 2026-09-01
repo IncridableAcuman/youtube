@@ -18,6 +18,7 @@ export const useAuthInit = () => {
                 // 2. Token olgandan so'ng foydalanuvchi profil ma'lumotlarini yuklash
                 const { data: userData } = await api.get("/users/me");
                 setUser(userData);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (error) {
                 clearAuth();
             } finally {

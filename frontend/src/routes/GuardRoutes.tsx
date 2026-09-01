@@ -28,7 +28,7 @@ export const AdminRoute = () => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (user?.role !== "ADMIN") {
+    if (user?.role !== "USER") {
         return <Navigate to="/" replace />;
     }
 

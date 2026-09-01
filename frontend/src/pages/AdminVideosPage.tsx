@@ -33,15 +33,17 @@ export const AdminVideosPage: React.FC = () => {
                         {videos.map((video) => (
                             <tr key={video.id} className="hover:bg-zinc-800/40 transition">
                                 <td className="p-4 font-semibold text-white truncate max-w-xs">{video.title}</td>
-                                <td className="p-4 text-zinc-400">{video.channelName}</td>
-                                <td className="p-4 text-zinc-400">{video.viewsCount.toLocaleString()}</td>
+                                <td className="p-4 text-zinc-400">{video.channelName || "Noma'lum"}</td>
+                                <td className="p-4 text-zinc-400">
+                                    {(video.viewsCount ?? video.views ?? 0).toLocaleString()}
+                                </td>
                                 <td className="p-4">
                                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                                             video.status === "APPROVED" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" :
                                                 video.status === "PENDING" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
                                                     "bg-red-500/10 text-red-500 border border-red-500/20"
                                         }`}>
-                                            {video.status}
+                                            {video.status || "PENDING"}
                                         </span>
                                 </td>
                                 <td className="p-4 text-right space-x-2">
