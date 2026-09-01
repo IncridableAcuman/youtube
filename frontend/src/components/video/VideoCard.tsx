@@ -6,8 +6,9 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video }: VideoCardProps) {
-    // Backenddan kelayotgan thumbnailUrl yoki zaxira manba
-    const thumbnail = video.thumbnailUrl || `https://i.ytimg.com/vi/${video.youtubeKey}/hqdefault.jpg`;
+    const thumbnail =
+        video.thumbnailUrl || `https://i.ytimg.com/vi/${video.youtubeKey}/hqdefault.jpg`;
+    const viewsCount = (video.views ?? 0).toLocaleString();
 
     return (
         <Link to={`/watch/${video.id}`} className="group flex flex-col gap-2 cursor-pointer">
@@ -35,7 +36,7 @@ export function VideoCard({ video }: VideoCardProps) {
                     </h3>
                     <p className="mt-1 text-xs text-zinc-400">YouTube Kanal</p>
                     <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-0.5">
-                        <span>{video.views.toLocaleString()} ko'rishlar</span>
+                        <span>{viewsCount} ko'rishlar</span>
                     </div>
                 </div>
             </div>

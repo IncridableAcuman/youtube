@@ -1,5 +1,7 @@
 import React from "react";
 
+// src/constants/categories.ts
+// eslint-disable-next-line react-refresh/only-export-components
 export const CATEGORIES = [
     "Barchasi",
     "Dasturlash",
@@ -13,7 +15,7 @@ export const CATEGORIES = [
     "Ta'lim",
     "Dizayn",
     "Sport",
-];
+] as const;
 
 interface Props {
     selectedCategory?: string;
@@ -21,9 +23,9 @@ interface Props {
 }
 
 export const CategoryChips: React.FC<Props> = ({
-                                                   selectedCategory = "Barchasi",
-                                                   onSelectCategory,
-                                               }) => {
+    selectedCategory = "Barchasi",
+    onSelectCategory,
+}) => {
     return (
         <div className="flex gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar scroll-smooth">
             {CATEGORIES.map((cat) => {
@@ -31,6 +33,7 @@ export const CategoryChips: React.FC<Props> = ({
                 return (
                     <button
                         key={cat}
+                        type="button"
                         onClick={() => onSelectCategory?.(cat)}
                         className={`px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
                             isActive

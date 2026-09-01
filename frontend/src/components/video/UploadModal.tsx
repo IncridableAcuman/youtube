@@ -161,7 +161,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
                                 />
                                 <div className="text-xs text-zinc-400 overflow-hidden">
                                     <p className="font-medium text-zinc-200">URL aniqlandi</p>
-                                    <p className="text-[11px] text-zinc-500 truncate max-w-[240px]">{formData.youtubeUrl}</p>
+                                    <p className="text-[11px] text-zinc-500 truncate max-w-60">{formData.youtubeUrl}</p>
                                 </div>
                             </div>
                         )}

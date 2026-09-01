@@ -27,7 +27,7 @@ export default function ChannelPage() {
         return () => {
             clearCurrentChannel();
         };
-    }, [channelId]);
+    }, [channelId, clearCurrentChannel, fetchChannelDetails, fetchChannelVideos]);
 
     const handleToggleSubscribe = async () => {
         if (!channel || subscribing) return;
@@ -44,7 +44,7 @@ export default function ChannelPage() {
 
     if (loading && !channel) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] text-zinc-500 gap-3">
+            <div className="flex flex-col items-center justify-center min-h-100 text-zinc-500 gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-red-600" />
                 <span className="text-xs">Kanal yuklanmoqda...</span>
             </div>
@@ -53,7 +53,7 @@ export default function ChannelPage() {
 
     if (!channel) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] text-zinc-500">
+            <div className="flex flex-col items-center justify-center min-h-100 text-zinc-500">
                 <p className="text-base font-medium text-zinc-400">Kanal topilmadi</p>
             </div>
         );
@@ -62,7 +62,7 @@ export default function ChannelPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-6 text-zinc-100 px-4 py-2">
             {/* Banner */}
-            <div className="h-36 sm:h-52 w-full rounded-2xl bg-gradient-to-r from-zinc-800 via-zinc-900 to-zinc-800 border border-zinc-800/80 overflow-hidden relative shadow-inner flex items-center justify-center">
+            <div className="h-36 sm:h-52 w-full rounded-2xl bg-linear-to-r from-zinc-800 via-zinc-900 to-zinc-800 border border-zinc-800/80 overflow-hidden relative shadow-inner flex items-center justify-center">
                 {channel.bannerUrl ? (
                     <img
                         src={channel.bannerUrl}
